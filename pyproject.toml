@@ -5,7 +5,18 @@ description = ""
 authors = ["Mirumee <it@mirumee.com>"]
 readme = "README.md"
 packages = [{include = "smyth", from = "src"}]
-license = "MIT"
+license = "BSD-3-Clause"
+repository = "https://github.com/mirumee/smyth"
+classifiers = [
+    "Programming Language :: Python",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Software Development",
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
