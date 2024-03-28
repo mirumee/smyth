@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "smyth"
-version = "0.2.1"
+version = "0.3.0"
 description = ""
 authors = ["Mirumee <it@mirumee.com>"]
 readme = "README.md"
@@ -16,6 +16,7 @@ toml = "^0"
 pydantic = "^2.6.2"
 rich = "^13.7.0"
 click = "^8.1.7"
+asgiref = "^3.7.2"
 
 [tool.poetry.group.dev.dependencies]
 ipdb = "^0.13.13"

@@ -1,9 +1,5 @@
 # Smyth
 
-<p align="center">
-  <img width="460" height="460" src="./docs/assets/images/smyth_logo_512.png">
-</p>
-
 A versatile tool that enhances your AWS Lambda development experience.
 
 ## Rationale
@@ -80,17 +76,19 @@ It's recommended to install this tool in your Lambda project virtual environment
 pip install git+https://github.com/mirumee/smyth@main
 ```
 
+Or git submodule it into your project and install with `poetry -G dev -e ../libs/smyth`.
+
 ## Configuration
 
 ### TOML
 Define the following settings in your Lambda project's `pyproject.toml` file:
 
 ```toml
-[tool.lambda-runtime]
+[tool.smyth]
 host = "0.0.0.0"
 port = 8080
 
-[tool.lambda-runtime.handlers.saleor_handler]
+[tool.smyth.handlers.saleor_handler]
 handler_path = "marina_adyen.handlers.saleor.handler.saleor_http_handler"
 url_path = "/saleor/{path:path}"
 ```
@@ -99,7 +97,25 @@ url_path = "/saleor/{path:path}"
 
 TOML configuration can be overloaded with `--host` and `--port`. You can also use the `--only` flag to specifically pick handlers defined in the TOML. This is useful if you'd like to run your separate handlers in separate Docker containers (to for example limit their CPU and MEM).
 
-### `tool.lambda-runtime` Section
+```
+python -m smyth run --help
+Usage: python -m smyth run [OPTIONS]
+
+Options:
+  -h, --host TEXT     Bind socket to this host.
+  -p, --port INTEGER  Bind socket to this port.
+  --only TEXT         Run only the handler of this name. [list]
+  --log-level TEXT    Log level.
+  --help              Show this message and exit.
+```
+
+Run the server with:
+
+```
+python -m smyth run
+```
+
+### `tool.smyth` Section
 
 | Key       | Default   | Description                                                                                                    |
 |-----------|-----------|----------------------------------------------------------------------------------------------------------------|
@@ -107,21 +123,33 @@ TOML configuration can be overloaded with `--host` and `--port`. You can also us
 | port      | `8080`      | `int` The port for the Uvicorn server to bind to. If set to 0, an available port will be chosen automatically. |
 | log_level | `"INFO"`    | `str` The log level for the main ASGI server process.                                                          |
 
-### `tool.lambda-runtime.handlers.{handler_name}` Section
+### `tool.smyth.handlers.{handler_name}` Section
 
-| Key                         | Default                                               | Description                                                             |
-|-----------------------------|-------------------------------------------------------|-------------------------------------------------------------------------|
-| **handler_path**            | (Required)                                            | `str` The Python path to the Lambda handler to be invoked.                    |
-| **url_path**                | (Required)                                            | `str` The Starlette-like URL path for routing requests to the Lambda handler. |
-| timeout                     | `None`                                                  | `float | None` The maximum duration (in seconds) before the Lambda times out.          |
-| event_data_generator_path   | `"smyth.event.generate_event_data"`     | `str` The Python path to a custom Lambda event data generator.                |
-| context_data_generator_path | `"smyth.context.generate_context_data"` | `str` The Python path to a custom Lambda context data generator.              |
-| fake_coldstart_time         | `false`                                                 | `bool` If set to true first start will mock the warmup time (0.5 to 1.0 second) - this does nothing but keeps one's brain from forgetting how this lambda will behave in production. |
-| log_level | `"INFO"` | `str` The log level for the LambdaProcesses. | 
+| Key                         | Default                                                  | Description                                                                                                                                                                          |
+|-----------------------------|----------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **handler_path**            | (Required)                                               | `str` The Python path to the Lambda handler to be invoked.                                                                                                                           |
+| **url_path**                | (Required)                                               | `str` The Starlette-like URL path for routing requests to the Lambda handler.                                                                                                        |
+| timeout                     | `None`                                                   | `float \| None` The maximum duration (in seconds) before the Lambda times out.                                                                                                       |
+| event_data_generator_path   | `"smyth.event.generate_event_data"`                      | `str` Python path to a custom Lambda event data generator.                                                                                                                       |
+| context_data_generator_path | `"smyth.context.generate_context_data"`                  | `str` Python path to a custom Lambda context data generator.                                                                                                                     |
+| fake_coldstart_time         | `false`                                                  | `bool` If set to true first start will mock the warmup time (0.5 to 1.0 second) - this does nothing but keeps one's brain from forgetting how this lambda will behave in production. |
+| log_level                   | `"INFO"`                                                 | `str` The log level for the LambdaProcesses.                                                                                                                                         |
+| concurrency                 | `1`                                                      | `int` Number of processes the dispatcher is allowed to spawn                                                                                                                         |
+| dispatch_strategy_path      | `"smyth.dispatcher.strategy.RoundRobinDispatchStrategy"` | `str` Python path to a DispatchStrategy class                                                                                                                                                                     |
+
+### Dispatch Strategies
+
+Smyth offers two dispatch strategies to manage how requests are handled by Lambda Processes:
+
+- **Round Robin (`smyth.dispatcher.strategy.RoundRobinDispatchStrategy`)**: This strategy, not typical for AWS Lambda's behavior, is beneficial during development. It rotates among Lambda Processes for each request, given that concurrency is set higher than `1`. This approach encourages developers to avoid relying on global state across requests, promoting best practices in serverless application design.
+
+- **First Warm (`smyth.dispatcher.strategy.FirstWarmDispatchStrategy`)**: This strategy prioritizes the use of the first available Lambda Process in a "warm" state to handle incoming requests. If no warm instances are available, it initiates a "cold start". This behavior more closely mimics the operational dynamics of AWS Lambda, where reusing warm instances can lead to faster response times.
+
+It's important to note that Smyth is intended for local development and not for production use or load testing. The dispatcher and Lambda Process instances are not designed to handle high volumes of concurrent requests and will likely falter under heavy load. This limitation is deliberate, reflecting the tool's focus on local development scenarios where high concurrency is uncommon.
 
 ## Customizing Event and Lambda Context Data
 
-To tailor the Lambda event data, you can specify a custom coroutine via the `event_data_generator_path` in the handler configuration. This coroutine should accept a `starlette.requests.Request` object and return a dictionary to be passed to the Lambda handler. By default, `smyth.event.generate_event_data` creates an AWS API Gateway v2 event payload, but you can customize this as follows:
+Customization of Lambda event and context data allows developers to tailor the runtime environment to their specific needs, enhancing the local development experience. For event data customization:
 
 ```python
 from smyth.event import generate_event_data
@@ -132,15 +160,13 @@ async def generate_custom_event_data(request: Request):
     return original_event
 ```
 
-See [AWS Serverless Application Model CLI (SAM)](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html). It can [generate example payloads](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-local-generate-event.html) with are promised to be accurate. For example:
+This example demonstrates how to modify the default event payload generation process to include custom data. Developers can leverage the [AWS Serverless Application Model CLI (SAM)](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html) to generate accurate [example payloads](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-local-generate-event.html) for different AWS services, aiding in the creation of realistic local testing scenarios.
 
-```
-sam local generate-event apigateway http-api-proxy
-```
+For context data customization, the configuration allows specifying a coroutine that takes additional arguments such as `process_def: ProcessDefinition` and `process: LambdaProcess`. The output from this coroutine is used to create a customized `smyth.dispatcher.runner.FakeLambdaContext`, which can include information about the Smyth runtime environment. This capability is crucial for simulating the full spectrum of AWS Lambda execution contexts, facilitating a more comprehensive and realistic development experience.
 
-Similarly, you can customize the Lambda context data with the `context_data_generator_path`. This setting also accepts a Starlette Request and an optional `timeout: float | None` argument. The coroutine's output dictionary is used to construct a `smyth.runner.FakeLambdaContext`, which is then passed to the Lambda handler. 
+## Status endpoint
 
-This flexibility allows for the simulation of various AWS event types, such as those emitted by SQS.
+There is a `GET /__/status` endpoint available on the Starlette server, it will present runtime data about the Lambda processes and used configuration.
 
 ## Working with Docker
 
@@ -152,24 +178,27 @@ To utilize the VS Code debugger with the Smyth tool, you can set up your `launch
 
 ```json
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Smyth",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "smyth",
-      "envFile": "${workspaceFolder}/.env"
-    }
-  ]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Module",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "smyth",
+            "args": ["run"],
+        }
+    ]
 }
 ```
+
+## Caveats
+
+The combination of Uvicorn reload process and HTTP server process with what is being done with the Lambda processes is tricky. If a Lambda process is doing something and the HTTP server is killed in the wrong moment it's likely going to bork your terminal. This is not solved yet. It's best to use in a Docker container or have the ability to `kill -9 {PID of the Uvicorn reload process}` at hand.
 
 ## TODO
 
 - [ ] Write tests
-- [ ] Improve Exception handling
-- [ ] Improve Process handling, ensure all processes are running, restart if unexpectedly terminated
+- [ ] Properly handle Uvicorn exit, kill the LambdaProcesses gracefully
 - [ ] Publish on PyPi
 
 ## Name

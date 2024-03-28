@@ -16,6 +16,8 @@ class HandlerConfig:
     context_data_generator_path: str = "smyth.context.generate_context_data"
     fake_coldstart_time: bool = False
     log_level: str = "INFO"
+    concurrency: int = 1
+    dispatch_strategy_path: str = "smyth.dispatcher.strategy.RoundRobinDispatchStrategy"
 
 
 @dataclass
@@ -24,7 +26,8 @@ class Config:
     port: int = 8080
     handlers: dict[str, HandlerConfig] = field(default_factory=dict)
     log_level: str = "INFO"
-    
+    smyth_path_prefix: str = "/smyth"
+
     def __post_init__(self):
         self.handlers = {
             handler_name: HandlerConfig(**handler_config)
