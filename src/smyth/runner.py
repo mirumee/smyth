@@ -111,7 +111,11 @@ def timeout_handler(signum, frame):
 def main(lambda_handler_config: HandlerConfig, input_queue: Queue, output_queue: Queue):
     LOGGER.setLevel(lambda_handler_config.log_level)
     sys.stdin = open("/dev/stdin")
-    lambda_handler = import_attribute(lambda_handler_config.handler_path)
+    try:
+        lambda_handler = import_attribute(lambda_handler_config.handler_path)
+    except ImportError as error:
+        LOGGER.error("Could not import lambda handler: %s", error)
+        raise 
 
     coldstart_next_invokation = lambda_handler_config.fake_coldstart_time
 

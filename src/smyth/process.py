@@ -66,11 +66,20 @@ class LambdaProcess(Process):
 
     def send(self, data) -> RunnerResult | None:
         LOGGER.info("Sending data to process %s: %s", self.name, data)
+        if not self.is_alive():
+            raise RuntimeError(f"Process '{self.name}' is not alive, restart server.")
         self.input_queue.put(data)
         try:
-            result_data = self.output_queue.get()
-            LOGGER.info("Received data from process %s: %s", self.name, result_data)
-            return RunnerResult.model_validate_json(result_data)
+            while True:
+                result_data = self.output_queue.get(timeout=10)
+                if not result_data:
+                    LOGGER.info("Received empty data from process %s, checking if process is alive", self.name)
+                    if not self.is_alive():
+                        LOGGER.info("Process %s is not alive, breaking", self.name)
+                        break
+                    continue
+                LOGGER.info("Received data from process %s: %s", self.name, result_data)
+                return RunnerResult.model_validate_json(result_data)
         except Empty:
             return None
         except KeyboardInterrupt:

@@ -8,6 +8,7 @@ import uvicorn
 from smyth.config import get_config, get_config_dict, serialize_config
 
 config = get_config(get_config_dict())
+
 logging_config = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -16,6 +17,7 @@ logging_config = {
             "class": "rich.logging.RichHandler",
             "formatter": "default",
             "markup": True,
+            "rich_tracebacks": True,
         },
     },
     "formatters": {
@@ -31,6 +33,7 @@ logging_config = {
 }
 logging.config.dictConfig(logging_config)
 LOGGER = logging.getLogger(__name__)
+
 
 @click.group()
 def cli():

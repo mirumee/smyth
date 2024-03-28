@@ -40,6 +40,7 @@ async def lifespan(app: Starlette):
             process.terminate()
             process.join()
         LOGGER.info("All lambda processes terminated")
+        
 
 
 def get_process_definition(path: str) -> ProcessDefinition | None:
