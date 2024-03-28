@@ -1,0 +1,54 @@
+[tool.poetry]
+name = "smyth"
+version = "0.2.0"
+description = ""
+authors = ["Mirumee <it@mirumee.com>"]
+readme = "README.md"
+packages = [{include = "smyth", from = "src"}]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+uvicorn = "^0"
+starlette = "^0"
+aws-lambda-powertools = "^2"
+toml = "^0"
+pydantic = "^2.6.2"
+rich = "^13.7.0"
+click = "^8.1.7"
+
+[tool.poetry.group.dev.dependencies]
+ipdb = "^0.13.13"
+ruff = "^0.2.2"
+mypy = "^1.8.0"
+types-toml = "^0.10.8.7"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+exclude = ["src/graphql_client"]
+line-length = 99
+target-version = "py312"
+
+# rules: https://beta.ruff.rs/docs/rules
+# F - pyflakes
+# E - pycodestyle
+# G - flake8-logging-format
+# I - isort
+# N - pep8-naming
+# Q - flake8-quotes
+# UP - pyupgrade
+# C90 - mccabe (complexity)
+# T20 - flake8-print
+# TID - flake8-tidy-imports
+
+[tool.ruff.lint]
+select = ["E", "F", "G", "I", "N", "Q", "UP", "C90", "T20", "TID"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"

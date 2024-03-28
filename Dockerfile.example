@@ -1,0 +1,24 @@
+FROM python:3.12
+
+ENV PYTHONUNBUFFERED=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=on
+ENV PIP_DEFAULT_TIMEOUT=100
+ENV POETRY_VERSION=1.8.1
+ENV POETRY_HOME="/opt/poetry"
+ENV POETRY_NO_INTERACTION=1
+ENV POETRY_VIRTUALENVS_CREATE=false
+ENV PATH="$POETRY_HOME/bin:$PATH"
+
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=$POETRY_VERSION python3 - 
+
+WORKDIR /app
+
+COPY poetry.lock pyproject.toml ./
+COPY ./libs ./libs
+
+RUN bash -c "poetry install --no-root"
+
+COPY . ./
+RUN bash -c "poetry install"
+
+CMD ["python", "-m smyth"]
