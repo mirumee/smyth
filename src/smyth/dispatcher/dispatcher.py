@@ -76,7 +76,7 @@ class Dispatcher:
         return process_groups
 
     def get_process_definition(self, path: str) -> ProcessDefinition:
-        for path, process_def in self.process_definitions.items():
+        for process_def in self.process_definitions.values():
             if process_def.url_path.match(path):
                 return process_def
         raise ProcessDefinitionNotFoundError(
