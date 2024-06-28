@@ -1,66 +1,141 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "smyth"
-version = "0.3.1"
-description = ""
-authors = ["Mirumee <it@mirumee.com>"]
+version = "0.4.0"
+description = ''
 readme = "README.md"
-packages = [{include = "smyth", from = "src"}]
-license = "BSD-3-Clause"
-repository = "https://github.com/mirumee/smyth"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = []
+authors = [{ name = "Mirumee", email = "it@mirumee.com" }]
 classifiers = [
-    "Programming Language :: Python",
-    "Development Status :: 3 - Alpha",
     "Environment :: Console",
     "Intended Audience :: Developers",
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Software Development :: Build Tools",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
     "Topic :: Software Development",
 ]
+dependencies = [
+    "starlette",
+    "uvicorn",
+    "aws-lambda-powertools",
+    "toml",
+    "pydantic",
+    "rich",
+    "asgiref",
+    "typer",
+]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-uvicorn = "^0"
-starlette = "^0"
-aws-lambda-powertools = "^2"
-toml = "^0"
-pydantic = "^2.6.2"
-rich = "^13.7.0"
-click = "^8.1.7"
-asgiref = "^3.7.2"
+[project.optional-dependencies]
+dev = ["ipdb"]
+types = ["mypy>=1.0.0", "pytest", "types-toml", "pytest-asyncio"]
+docs = ["mkdocs-material", "termynal"]
 
-[tool.poetry.group.dev.dependencies]
-ipdb = "^0.13.13"
-ruff = "^0.2.2"
-mypy = "^1.8.0"
-types-toml = "^0.10.8.7"
+[tool.hatch.envs.default]
+features = ["dev", "types", "docs"]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[project.urls]
+Documentation = "https://mirumee.github.io/smyth/"
+Issues = "https://github.com/mirumee/smyth/issues"
+Source = "https://github.com/mirumee/smyth"
+
+[project.scripts]
+smyth = "smyth.__main__:app"
+
+[tool.hatch.envs.default.scripts]
+check = [
+    "hatch fmt",
+    "hatch test -a",
+    "hatch test --cover",
+    "hatch run types:check",
+]
+cov-html = ["hatch test --cover -- --cov-report=html"]
+
+[tool.hatch.envs.hatch-static-analysis]
+config-path = "ruff.toml"
+
+[tool.hatch.envs.hatch-test]
+dependencies = [
+    "asynctest",
+    "ipdb",
+    "pytest-asyncio",
+    "pytest-memray",
+    "pytest-print",
+    "pytest-cov",
+]
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/smyth tests}"
+
+[tool.hatch.envs.docs.scripts]
+build = "mkdocs build --clean --strict"
+serve = "mkdocs serve --dev-addr localhost:8000"
+deploy = "mkdocs gh-deploy --force"
+
+[tool.hatch.envs.coverage]
+detached = true
+dependencies = ["coverage[toml]>=6.2"]
+[tool.hatch.envs.coverage.scripts]
+combine = "coverage combine {args}"
+html = "coverage html --skip-covered --skip-empty"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/smyth"]
+
+[tool.coverage.run]
+source_pkgs = ["smyth"]
+branch = true
+parallel = true
+
+[tool.coverage.paths]
+smyth = ["src/smyth"]
+tests = ["tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "no cov",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstract",
+]
+# fail_under = 90  # TODO: Uncomment when coverage is good enough
 
 [tool.ruff]
-exclude = ["src/graphql_client"]
-line-length = 99
-target-version = "py312"
+line-length = 88
+target-version = "py310"
 
-# rules: https://beta.ruff.rs/docs/rules
-# F - pyflakes
-# E - pycodestyle
-# G - flake8-logging-format
-# I - isort
-# N - pep8-naming
-# Q - flake8-quotes
-# UP - pyupgrade
-# C90 - mccabe (complexity)
-# T20 - flake8-print
-# TID - flake8-tidy-imports
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = 80
 
 [tool.ruff.lint]
 select = ["E", "F", "G", "I", "N", "Q", "UP", "C90", "T20", "TID"]
 
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
 [tool.ruff.lint.mccabe]
 max-complexity = 10
 
-[tool.ruff.lint.flake8-tidy-imports]
-ban-relative-imports = "all"
+[tool.ruff.lint.isort]
+known-first-party = ["smyth"]
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

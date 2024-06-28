@@ -1,0 +1,79 @@
+site_name: Smyth
+site_url: https://mirumee.github.io/smyth/
+repo_url: https://github.com/mirumee/smyth
+repo_name: mirumee/smyth
+copyright: Copyright &copy; 2024 - Mirumee Software
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  palette:
+    scheme: slate
+    primary: custom
+    accent: custom
+  features:
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - navigation.indexes
+    - navigation.footer
+    - navigation.tracking
+    - navigation.expand
+    - search.suggest
+
+nav:
+  - index.md
+  - User Guide:
+      - user_guide/index.md
+      - user_guide/event_generators.md
+      - user_guide/invoke.md
+      - user_guide/concurrency.md
+      - user_guide/all_settings.md
+      - user_guide/custom_entrypoint.md
+
+plugins:
+  - offline:
+      enabled: !ENV [OFFLINE, false]
+  - search
+  - termynal:
+      prompt_literal_start:
+        - "$"
+        - ">"
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
+  - https://unpkg.com/tablesort@5.3.0/dist/sorts/tablesort.number.min.js
+  - javascripts/tablesort.js
+
+markdown_extensions:
+  - admonition 
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - footnotes
+  - tables
+  - toc:
+      permalink: true

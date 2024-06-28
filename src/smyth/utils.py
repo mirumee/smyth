@@ -1,9 +1,8 @@
-from importlib import import_module
 import logging
+from importlib import import_module
 
 
 class SmythStatusRouteFilter(logging.Filter):
-
     def __init__(self, name: str = "", smyth_path_prefix: str = "") -> None:
         super().__init__(name)
         self.smyth_path_prefix = smyth_path_prefix

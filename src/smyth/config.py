@@ -1,5 +1,4 @@
-import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import toml
@@ -12,12 +11,12 @@ class HandlerConfig:
     handler_path: str
     url_path: str
     timeout: float | None = None
-    event_data_generator_path: str = "smyth.event.generate_event_data"
+    event_data_generator_path: str = "smyth.event.generate_api_gw_v2_event_data"
     context_data_generator_path: str = "smyth.context.generate_context_data"
-    fake_coldstart_time: bool = False
+    fake_coldstart: bool = False
     log_level: str = "INFO"
     concurrency: int = 1
-    dispatch_strategy_path: str = "smyth.dispatcher.strategy.RoundRobinDispatchStrategy"
+    strategy_function_path: str = "smyth.runner.strategy.first_warm"
 
 
 @dataclass
@@ -58,13 +57,3 @@ def get_config_dict(config_file_name: str | None = None) -> dict:
 def get_config(config_dict: dict) -> Config:
     """Get config."""
     return Config(**config_dict["tool"]["smyth"])
-
-
-def serialize_config(config: "Config") -> str:
-    """Serialize config."""
-    return json.dumps(asdict(config))
-
-
-def deserialize_config(config_str: str) -> Config:
-    """Deserialize config."""
-    return Config(**json.loads(config_str))

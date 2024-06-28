@@ -3,17 +3,17 @@ from typing import Any
 
 from starlette.requests import Request
 
-from smyth.dispatcher.process import LambdaProcess
-from smyth.dispatcher.type import ProcessDefinition
+from smyth.types import RunnerProcessProtocol, SmythHandler
 
 
 async def generate_context_data(
-    request: Request, process_def: ProcessDefinition, process: LambdaProcess
+    request: Request, handler: SmythHandler, process: RunnerProcessProtocol
 ):
     """
     The data returned by this function is passed to the
     `smyth.runner.FaneContext` as kwargs.
     """
+    asdict(handler)
     context: dict[str, Any] = {
         "smyth": {
             "process": {
@@ -22,12 +22,12 @@ async def generate_context_data(
                 "task_counter": process.task_counter,
                 "last_used_timestamp": process.last_used_timestamp,
             },
-            "process_def": {
-                "name": process_def.name,
-                "handler_config": asdict(process_def.handler_config),
+            "handler": {
+                "name": handler.name,
+                "handler_config": asdict(handler),
             },
         }
     }
-    if process_def.handler_config.timeout is not None:
-        context["timeout"] = process_def.handler_config.timeout
+    if handler.timeout is not None:
+        context["timeout"] = handler.timeout
     return context
