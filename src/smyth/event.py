@@ -1,7 +1,7 @@
 from starlette.requests import Request
 
 
-async def generate_event_data(request: Request):
+async def generate_api_gw_v2_event_data(request: Request):
     source_ip = None
     if request.client:
         source_ip = request.client.host
@@ -26,3 +26,7 @@ async def generate_event_data(request: Request):
         "routeKey": f"{request.method} {request.url.path}",
         "rawQueryString": request.url.query,
     }
+
+
+async def generate_lambda_invokation_event_data(request: Request):
+    return await request.json()

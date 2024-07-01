@@ -1,14 +1,13 @@
 import logging
-import logging.config
-import os
+from typing import Annotated
 
-import click
+import typer
 import uvicorn
 
-from smyth.config import get_config, get_config_dict, serialize_config
+from smyth.config import get_config, get_config_dict
 
+app = typer.Typer()
 config = get_config(get_config_dict())
-
 
 logging_config = {
     "version": 1,
@@ -34,39 +33,49 @@ logging_config = {
             "datefmt": "[%X]",
         },
     },
-    "root": {
-        "handlers": ["console"],
-        "level": config.log_level,
+    "loggers": {
+        "smyth": {
+            "handlers": ["console"],
+            "level": config.log_level,
+            "propagate": False,
+        },
+        "uvicorn": {
+            "handlers": ["console"],
+            "level": config.log_level,
+            "propagate": False,
+        },
     },
 }
 logging.config.dictConfig(logging_config)
 LOGGER = logging.getLogger(__name__)
 
 
-@click.group()
-def cli():
-    pass
+@app.command()
+def run(
+    smyth_starlette_app: Annotated[
+        str | None, typer.Argument()
+    ] = None,  # typer does not handle union types
+    smyth_starlette_app_factory: Annotated[
+        str, typer.Argument()
+    ] = "smyth.server.app:create_app",
+    host: Annotated[str | None, typer.Option()] = config.host,
+    port: Annotated[int | None, typer.Option()] = config.port,
+    log_level: Annotated[str | None, typer.Option()] = config.log_level,
+):
+    if smyth_starlette_app and smyth_starlette_app_factory:
+        raise typer.BadParameter(
+            "Only one of smyth_starlette_app or smyth_starlette_app_factory "
+            "should be provided."
+        )
 
-
-@cli.command()
-@click.option("-h", "--host", default=None, help=f"Bind socket to this host. [default: {config.host}]", type=str)
-@click.option("-p", "--port", default=None, help=f"Bind socket to this port. [default: {config.port}]", type=int)
-@click.option("--only", default=None, help="Run only the handler of this name. [list]", multiple=True)
-@click.option("--log-level", default=None, help=f"Log level. [default: {config.log_level}]", type=str)
-def run(host: str | None, port: int | None, only: list[str] | None, log_level: str | None):
-    LOGGER.info("Starting [blue bold]Smyth[/]")
-
-    if only:
-        config.handlers = {
-            handler_name: handler_config
-            for handler_name, handler_config in config.handlers.items()
-            if handler_name in only
-        }
-        LOGGER.info(
-            "[yellow][bold]Only[/bold] running handlers:[/yellow] [blue]%s[/blue]", 
-            ", ".join(
-                [handler for handler in config.handlers.keys()]
-            )
+    factory = False
+    if smyth_starlette_app_factory:
+        smyth_starlette_app = smyth_starlette_app_factory
+        factory = True
+    if not smyth_starlette_app:
+        raise typer.BadParameter(
+            "One of smyth_starlette_app or smyth_starlette_app_factory "
+            "should be provided."
         )
 
     if host:
@@ -76,17 +85,17 @@ def run(host: str | None, port: int | None, only: list[str] | None, log_level: s
     if log_level:
         config.log_level = log_level
 
-    os.environ["_SMYTH_CONFIG"] = serialize_config(config)
-
     uvicorn.run(
-        "smyth.app:app",
+        smyth_starlette_app,
+        factory=factory,
         host=config.host,
         port=config.port,
         reload=True,
         log_config=logging_config,
         timeout_keep_alive=60 * 15,
+        lifespan="on",
     )
 
 
 if __name__ == "__main__":
-    cli()
+    app()

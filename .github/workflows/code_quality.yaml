@@ -1,53 +1,73 @@
 name: Code Quality
 
-on: [push]
+on:
+  push:
 
 jobs:
-  coverage:
-    name: Coverage
+  format-check:
+    name: Format Check
     runs-on: ubuntu-latest
-    env:
-      COVERAGE: 90
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version-file: pyproject.toml
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1.3.4
-        with:
-          version: 1.8.2
-          virtualenvs-create: true
-          virtualenvs-in-project: true
+      - name: Install Hatch
+        uses: pypa/hatch@257e27e51a6a5616ed08a39a408a21c35c9931bc
 
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v3
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-1.7.1-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-
-      - name: Install library
-        run: poetry install --no-interaction
-
-      # - name: Check coverage
-      #   run: poetry run pytest --cov=smyth --cov-fail-under=${{ env.COVERAGE }}  src
-
-      - name: mypy
-        run: poetry run mypy src
-  Ruff:
-    name: Ruff
+      - name: Run checks
+        run: |
+          hatch fmt --check
+  type-check:
+    name: Type Check
+    needs: [format-check]
     runs-on: ubuntu-latest
     steps:
-      - name: Ruff Check
-        uses: jpetrucciani/ruff-check@main
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
         with:
-          path: "."
+          python-version-file: pyproject.toml
+
+      - name: Install Hatch
+        uses: pypa/hatch@257e27e51a6a5616ed08a39a408a21c35c9931bc
+
+      - name: Run type checks
+        run: |
+          hatch run types:check
+  unit-test:
+    name: Unit Test
+    needs: [format-check, type-check]
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Hatch
+        uses: pypa/hatch@257e27e51a6a5616ed08a39a408a21c35c9931bc
+
+      - name: Run tests
+        if: ${{ matrix.python-version != '3.12' }}
+        run: |
+          hatch test -i python=${{ matrix.python-version }}
+
+      - name: Run tests with coverage
+        if: ${{ matrix.python-version == '3.12' }}
+        run: |
+          hatch test --cover -i python=${{ matrix.python-version }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !contains(github.ref, 'release/')}}
