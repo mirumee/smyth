@@ -36,9 +36,9 @@ strategy_function_path = "smyth.runner.strategy.round_robin"
 
 ## Dispatch Strategy
 
-Dispatch strategy is controlled by a function that tells Smyth which subprocess from the pool of processes running a handler should be used. There are two built-in strategy functions:
+Dispatch strategy is controlled by a generator function that tells Smyth which subprocess from the pool of processes running a handler should be used. There are two built-in strategy functions:
 
-- `smyth.runner.strategy.first_warm` - (the default) tries to act like AWS, using a warmed-up Lambda (handler) if available. It only thaws a cold one if there is nothing warm or they are busy.
+- `smyth.runner.strategy.first_warm` - (the default) tries to act like AWS, using a warmed-up Lambda (handler) if available. It only thaws a cold one if there is nothing warm or they are busy. This strategy is not ideal as it relies on the state of the process which might have changed since the generator was asked for the process, but it's good enough for a one client (you, the developer) scenario.
 - `smyth.runner.strategy.round_robin` - this one might keep you more in check as it picks the subprocess that was not used for the longest time, effectively using each subprocess one by one.
 
 You can choose the strategy function (including your own, in the same way as you would an event or context generator) with the `strategy_function_path` setting.

@@ -62,7 +62,7 @@ port = 8080
 [tool.smyth.handlers.order_handler]
 handler_path = "my_app.handlers.order_handler"
 url_path = "/orders/{path:path}"
-event_data_generator_path = "smyth_utils.event.generate_api_gw_v1_event_data"
+event_data_function_path = "smyth_utils.event.generate_api_gw_v1_event_data"
 
 [tool.smyth.handlers.product_handler]
 handler_path = "my_app.handlers.product_handler"

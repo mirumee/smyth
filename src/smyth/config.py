@@ -11,12 +11,12 @@ class HandlerConfig:
     handler_path: str
     url_path: str
     timeout: float | None = None
-    event_data_generator_path: str = "smyth.event.generate_api_gw_v2_event_data"
-    context_data_generator_path: str = "smyth.context.generate_context_data"
+    event_data_function_path: str = "smyth.event.generate_api_gw_v2_event_data"
+    context_data_function_path: str = "smyth.context.generate_context_data"
     fake_coldstart: bool = False
     log_level: str = "INFO"
     concurrency: int = 1
-    strategy_function_path: str = "smyth.runner.strategy.first_warm"
+    strategy_generator_path: str = "smyth.runner.strategy.first_warm"
 
 
 @dataclass

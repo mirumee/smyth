@@ -34,13 +34,13 @@ Here's a list of all the settings, including those that are simpler but equally 
 
 `timeout` - `float` (default: `None`, which means no timeout) The time in seconds after which the Lambda Handler raises a Timeout Exception, simulating Lambda's real-life timeouts.
 
-### Event Data Generator
+### Event Data Function
 
-`event_data_generator_path` - `str` (default: `"smyth.event.generate_api_gw_v2_event_data"`) Read more about [event generators here](event_generators.md).
+`event_data_function_path` - `str` (default: `"smyth.event.generate_api_gw_v2_event_data"`) Read more about [event functions here](event_functions.md).
 
-### Context Data Generator
+### Context Data Function
 
-`context_data_generator_path` - `str` (default: `"smyth.context.generate_context_data"`) A function similar to the [event generator](event_generators.md), but it constructs the `context`, adding some metadata from Smyth's runtime. You can create and use your own.
+`context_data_function_path` - `str` (default: `"smyth.context.generate_context_data"`) A function similar to the [event generator](event_functions.md), but it constructs the `context`, adding some metadata from Smyth's runtime. You can create and use your own.
 
 ### Fake Coldstart
 
@@ -54,6 +54,6 @@ Here's a list of all the settings, including those that are simpler but equally 
 
 `concurrency` - `int` (default: `1`) Read more about [concurrency here](concurrency.md).
 
-### Strategy Function
+### Strategy Generator
 
-`strategy_function_path` - `str` (default: `"smyth.runner.strategy.first_warm"`) Read more about [dispatch strategies here](concurrency.md/#dispatch-strategy).
+`strategy_generator_path` - `str` (default: `"smyth.runner.strategy.first_warm"`) Read more about [dispatch strategies here](concurrency.md/#dispatch-strategy).

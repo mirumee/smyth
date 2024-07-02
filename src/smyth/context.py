@@ -7,7 +7,7 @@ from smyth.types import RunnerProcessProtocol, SmythHandler
 
 
 async def generate_context_data(
-    request: Request, handler: SmythHandler, process: RunnerProcessProtocol
+    request: Request | None, handler: SmythHandler, process: RunnerProcessProtocol
 ):
     """
     The data returned by this function is passed to the

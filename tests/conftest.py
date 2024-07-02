@@ -9,17 +9,17 @@ from smyth.types import RunnerProcessProtocol, SmythHandler, SmythHandlerState
 @pytest.fixture
 def smyth_handler(
     mock_lambda_handler,
-    mock_event_data_generator,
-    mock_context_data_generator,
-    mock_strategy_function,
+    mock_event_data_function,
+    mock_context_data_function,
+    mock_strategy_generator,
 ):
     return SmythHandler(
         name="test_handler",
         url_path=re.compile(r"/test_handler"),
         lambda_handler=mock_lambda_handler,
-        event_data_generator=mock_event_data_generator,
-        context_data_generator=mock_context_data_generator,
-        strategy_function=mock_strategy_function,
+        event_data_function=mock_event_data_function,
+        context_data_function=mock_context_data_function,
+        strategy_generator=mock_strategy_generator,
     )
 
 
@@ -29,17 +29,17 @@ def mock_lambda_handler():
 
 
 @pytest.fixture
-def mock_event_data_generator():
+def mock_event_data_function():
     return Mock()
 
 
 @pytest.fixture
-def mock_context_data_generator():
+def mock_context_data_function():
     return Mock()
 
 
 @pytest.fixture
-def mock_strategy_function():
+def mock_strategy_generator():
     return Mock()
 
 

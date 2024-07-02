@@ -1,5 +1,5 @@
 import logging
-from typing import Annotated
+from typing import Annotated, Optional
 
 import typer
 import uvicorn
@@ -53,14 +53,14 @@ LOGGER = logging.getLogger(__name__)
 @app.command()
 def run(
     smyth_starlette_app: Annotated[
-        str | None, typer.Argument()
+        Optional[str], typer.Argument()  # noqa: UP007
     ] = None,  # typer does not handle union types
     smyth_starlette_app_factory: Annotated[
         str, typer.Argument()
     ] = "smyth.server.app:create_app",
-    host: Annotated[str | None, typer.Option()] = config.host,
-    port: Annotated[int | None, typer.Option()] = config.port,
-    log_level: Annotated[str | None, typer.Option()] = config.log_level,
+    host: Annotated[Optional[str], typer.Option()] = config.host,  # noqa: UP007
+    port: Annotated[Optional[int], typer.Option()] = config.port,  # noqa: UP007
+    log_level: Annotated[Optional[str], typer.Option()] = config.log_level,  # noqa: UP007
 ):
     if smyth_starlette_app and smyth_starlette_app_factory:
         raise typer.BadParameter(

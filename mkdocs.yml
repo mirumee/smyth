@@ -26,11 +26,12 @@ nav:
   - index.md
   - User Guide:
       - user_guide/index.md
-      - user_guide/event_generators.md
+      - user_guide/event_functions.md
       - user_guide/invoke.md
       - user_guide/concurrency.md
       - user_guide/all_settings.md
       - user_guide/custom_entrypoint.md
+      - user_guide/non_http.md
 
 plugins:
   - offline:

@@ -1,4 +1,4 @@
-from collections.abc import Awaitable, Callable, MutableMapping
+from collections.abc import Awaitable, Callable, Iterator, MutableMapping
 from dataclasses import dataclass
 from enum import Enum
 from re import Pattern
@@ -10,12 +10,13 @@ from starlette.requests import Request
 LambdaEvent = MutableMapping[str, Any]
 LambdaHandler = Callable[[LambdaEvent, LambdaContext], dict[str, Any]]
 RunnerMessage = MutableMapping[str, Any]
-EventDataGenerator = Callable[[Request], Awaitable[dict[str, Any]]]
-ContextDataGenerator = Callable[
-    [Request, "SmythHandler", "RunnerProcessProtocol"], Awaitable[dict[str, Any]]
+EventDataCallable = Callable[[Request], Awaitable[dict[str, Any]]]
+ContextDataCallable = Callable[
+    [Request | None, "SmythHandler", "RunnerProcessProtocol"], Awaitable[dict[str, Any]]
 ]
-StrategyFunction = Callable[
-    [str, dict[str, list["RunnerProcessProtocol"]]], "RunnerProcessProtocol"
+StrategyGenerator = Callable[
+    [str, dict[str, list["RunnerProcessProtocol"]]],
+    Iterator["RunnerProcessProtocol"],
 ]
 
 
@@ -38,12 +39,10 @@ class RunnerProcessProtocol(Protocol):
 class SmythHandler:
     name: str
     url_path: Pattern[str]
-    lambda_handler: Callable[[LambdaEvent, LambdaContext], dict[str, Any]]
-    event_data_generator: Callable[[Request], Awaitable[dict[str, Any]]]
-    context_data_generator: Callable[
-        [Request, "SmythHandler", RunnerProcessProtocol], Awaitable[dict[str, Any]]
-    ]
-    strategy_function: StrategyFunction
+    lambda_handler: LambdaHandler
+    event_data_function: EventDataCallable
+    context_data_function: ContextDataCallable
+    strategy_generator: StrategyGenerator
     timeout: float | None = None
     fake_coldstart: bool = False
     log_level: str = "INFO"

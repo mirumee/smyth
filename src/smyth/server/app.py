@@ -57,16 +57,16 @@ def create_app():
             path=handler_config.url_path,
             lambda_handler=import_attribute(handler_config.handler_path),
             timeout=handler_config.timeout,
-            event_data_generator=import_attribute(
-                handler_config.event_data_generator_path
+            event_data_function=import_attribute(
+                handler_config.event_data_function_path
             ),
-            context_data_generator=import_attribute(
-                handler_config.context_data_generator_path
+            context_data_function=import_attribute(
+                handler_config.context_data_function_path
             ),
             fake_coldstart=handler_config.fake_coldstart,
             log_level=handler_config.log_level,
             concurrency=handler_config.concurrency,
-            strategy_function=import_attribute(handler_config.strategy_function_path),
+            strategy_generator=import_attribute(handler_config.strategy_generator_path),
         )
 
     app = SmythStarlette(smyth=smyth, smyth_path_prefix=config.smyth_path_prefix)

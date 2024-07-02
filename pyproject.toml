@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "smyth"
-version = "0.4.0"
+version = "0.5.0"
 description = ''
 readme = "README.md"
 requires-python = ">=3.10"
@@ -123,6 +123,7 @@ docstring-code-line-length = 80
 
 [tool.ruff.lint]
 select = ["E", "F", "G", "I", "N", "Q", "UP", "C90", "T20", "TID"]
+unfixable = ["UP007"]  # typer does not handle PEP604 annotations
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"

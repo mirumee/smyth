@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse, Response
 from smyth.event import generate_lambda_invokation_event_data
 from smyth.exceptions import LambdaInvocationError, LambdaTimeoutError
 from smyth.smyth import Smyth
-from smyth.types import EventDataGenerator, SmythHandler
+from smyth.types import EventDataCallable, SmythHandler
 
 LOGGER = logging.getLogger(__name__)
 
@@ -17,11 +17,11 @@ async def dispatch(
     smyth: Smyth,
     handler: SmythHandler,
     request: Request,
-    event_data_generator: EventDataGenerator | None = None,
+    event_data_generator: EventDataCallable | None = None,
 ):
     try:
         result = await smyth.dispatch(
-            handler, request, event_data_generator=event_data_generator
+            handler, request, event_data_function=event_data_generator
         )
     except LambdaInvocationError as error:
         return Response(str(error), status_code=status.HTTP_502_BAD_GATEWAY)
@@ -55,7 +55,7 @@ async def invocation_endpoint(request: Request):
         return Response(
             f"Function {function} not found", status_code=status.HTTP_404_NOT_FOUND
         )
-    handler.event_data_generator = generate_lambda_invokation_event_data
+    handler.event_data_function = generate_lambda_invokation_event_data
     return await dispatch(
         smyth,
         handler,
