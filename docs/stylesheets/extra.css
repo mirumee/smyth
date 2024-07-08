@@ -62,14 +62,25 @@ tr.benchmarks-worst-result {
 }
 
 @keyframes heart {
-  0%, 40%, 80%, 100% {
+  0%,
+  40%,
+  80%,
+  100% {
     transform: scale(1);
   }
-  20%, 60% {
+  20%,
+  60% {
     transform: scale(1.15);
   }
 }
 .heart {
   animation: heart 1000ms infinite;
   color: #90030c;
+}
+
+.main-logo {
+    padding: 25px;
+}
+.main-logo path {
+  fill: var(--md-primary-fg-color);
 }

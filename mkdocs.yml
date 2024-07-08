@@ -6,6 +6,8 @@ copyright: Copyright &copy; 2024 - Mirumee Software
 
 theme:
   name: material
+  logo: assets/logo_black.svg
+  favicon: assets/logo_white_small.svg
   custom_dir: docs/overrides
   palette:
     scheme: slate
