@@ -9,6 +9,7 @@ from smyth.config import get_config, get_config_dict
 app = typer.Typer()
 config = get_config(get_config_dict())
 
+
 logging_config = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -20,17 +21,11 @@ logging_config = {
     },
     "handlers": {
         "console": {
-            "class": "rich.logging.RichHandler",
-            "formatter": "default",
+            "class": "smyth.utils.SmythRichHandler",
             "markup": True,
             "rich_tracebacks": True,
             "filters": ["smyth_api_filter"],
-        },
-    },
-    "formatters": {
-        "default": {
-            "format": "[%(processName)s] %(message)s",
-            "datefmt": "[%X]",
+            "show_path": False,
         },
     },
     "loggers": {

@@ -19,16 +19,10 @@ def configure_logging(log_level: str):
             "disable_existing_loggers": False,
             "handlers": {
                 "console": {
-                    "class": "rich.logging.RichHandler",
-                    "formatter": "default",
+                    "class": "smyth.utils.SmythRichHandler",
                     "markup": True,
                     "rich_tracebacks": True,
-                },
-            },
-            "formatters": {
-                "default": {
-                    "format": "[[bold red]%(processName)s[/]] %(message)s",
-                    "datefmt": "[%X]",
+                    "show_path": False,
                 },
             },
             "loggers": {
@@ -96,7 +90,11 @@ def lambda_invoker(
         try:
             response = lambda_handler(event, context)
         except Exception as error:
-            LOGGER.error("Error invoking lambda: %s", error)
+            LOGGER.exception(
+                "Error invoking lambda: %s",
+                error,
+                extra={"log_setting": "console_full_width"},
+            )
             result = {
                 "type": "smyth.lambda.error",
                 "response": {
