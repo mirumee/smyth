@@ -1,4 +1,6 @@
-from dataclasses import dataclass, field
+import json
+import os
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 import toml
@@ -13,8 +15,7 @@ class HandlerConfig:
     timeout: float | None = None
     event_data_function_path: str = "smyth.event.generate_api_gw_v2_event_data"
     context_data_function_path: str = "smyth.context.generate_context_data"
-    fake_coldstart: bool = False
-    log_level: str = "INFO"
+    log_level: str = "DEBUG"
     concurrency: int = 1
     strategy_generator_path: str = "smyth.runner.strategy.first_warm"
 
@@ -27,11 +28,14 @@ class Config:
     log_level: str = "INFO"
     smyth_path_prefix: str = "/smyth"
 
-    def __post_init__(self):
-        self.handlers = {
+    @classmethod
+    def from_dict(cls, config_dict: dict):
+        handler_data = config_dict.pop("handlers")
+        handlers = {
             handler_name: HandlerConfig(**handler_config)
-            for handler_name, handler_config in self.handlers.items()
+            for handler_name, handler_config in handler_data.items()
         }
+        return cls(**config_dict, handlers=handlers)
 
 
 def get_config_file_path(file_name: str = "pyproject.toml") -> Path:
@@ -56,4 +60,11 @@ def get_config_dict(config_file_name: str | None = None) -> dict:
 
 def get_config(config_dict: dict) -> Config:
     """Get config."""
-    return Config(**config_dict["tool"]["smyth"])
+    if environ_config := os.environ.get("__SMYTH_CONFIG"):
+        config_data = json.loads(environ_config)
+        return Config.from_dict(config_data)
+    return Config.from_dict(config_dict["tool"]["smyth"])
+
+
+def serialize_config(config: Config) -> str:
+    return json.dumps(asdict(config))

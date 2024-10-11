@@ -13,7 +13,7 @@ class FakeLambdaContext(LambdaContext):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def get_remaining_time_in_millis(self):
+    def get_remaining_time_in_millis(self) -> int:  # type: ignore[override]
         return int(
             max(
                 (self.timeout * 1000)

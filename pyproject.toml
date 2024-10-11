@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "smyth"
-version = "0.5.0"
+dynamic = ["version"]
 description = ''
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
+license = { file = "LICENSE.txt" }
 keywords = []
 authors = [{ name = "Mirumee", email = "it@mirumee.com" }]
 classifiers = [
@@ -32,37 +32,52 @@ dependencies = [
     "toml",
     "pydantic",
     "rich",
+    "click",
     "asgiref",
     "typer",
+    "setproctitle",
 ]
-
-[project.optional-dependencies]
-dev = ["ipdb"]
-types = ["mypy>=1.0.0", "pytest", "types-toml", "pytest-asyncio"]
-docs = ["mkdocs-material", "termynal"]
-
-[tool.hatch.envs.default]
-features = ["dev", "types", "docs"]
 
 [project.urls]
 Documentation = "https://mirumee.github.io/smyth/"
 Issues = "https://github.com/mirumee/smyth/issues"
 Source = "https://github.com/mirumee/smyth"
 
-[project.scripts]
-smyth = "smyth.__main__:app"
+[project.optional-dependencies]
+dev = ["ipdb"]
+types = ["mypy>=1.0.0", "pytest", "types-toml", "pytest-asyncio"]
+docs = ["mkdocs-material"]
+
+[tool.hatch.version]
+path = "src/smyth/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/smyth"]
+
+# Environment configuration
+
+## Default environment
+
+[tool.hatch.envs.default]
+features = ["dev", "types", "docs"]
 
 [tool.hatch.envs.default.scripts]
-check = [
-    "hatch fmt",
-    "hatch test -a",
-    "hatch test --cover",
-    "hatch run types:check",
-]
-cov-html = ["hatch test --cover -- --cov-report=html"]
+check = ["hatch fmt", "hatch test -a", "hatch test --cover", "hatch run types:check"]
 
-[tool.hatch.envs.hatch-static-analysis]
-config-path = "ruff.toml"
+## Types environment
+
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/smyth tests}"
+
+[tool.mypy]
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "setproctitle.*"
+ignore_missing_imports = true
+
+
+## Test environment
 
 [tool.hatch.envs.hatch-test]
 dependencies = [
@@ -72,28 +87,28 @@ dependencies = [
     "pytest-memray",
     "pytest-print",
     "pytest-cov",
+    "coverage[toml]",
 ]
 
 [[tool.hatch.envs.hatch-test.matrix]]
 python = ["3.10", "3.11", "3.12"]
 
-[tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/smyth tests}"
+## Docs environment
 
 [tool.hatch.envs.docs.scripts]
 build = "mkdocs build --clean --strict"
 serve = "mkdocs serve --dev-addr localhost:8000"
 deploy = "mkdocs gh-deploy --force"
 
-[tool.hatch.envs.coverage]
-detached = true
-dependencies = ["coverage[toml]>=6.2"]
-[tool.hatch.envs.coverage.scripts]
-combine = "coverage combine {args}"
-html = "coverage html --skip-covered --skip-empty"
+# Tool configuration
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/smyth"]
+## Pytest configuration
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+## Coverage configuration
 
 [tool.coverage.run]
 source_pkgs = ["smyth"]
@@ -102,7 +117,6 @@ parallel = true
 
 [tool.coverage.paths]
 smyth = ["src/smyth"]
-tests = ["tests"]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -111,7 +125,10 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "@abstract",
 ]
-# fail_under = 90  # TODO: Uncomment when coverage is good enough
+omit = ["*/__about__.py", "*/__main__.py", "*/cli/__init__.py"]
+# fail_under = 90  # TODO: Uncomment when coverage is good enough (0.9)
+
+## Ruff configuration
 
 [tool.ruff]
 line-length = 88
@@ -137,6 +154,3 @@ known-first-party = ["smyth"]
 [tool.ruff.lint.flake8-pytest-style]
 fixture-parentheses = false
 mark-parentheses = false
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"

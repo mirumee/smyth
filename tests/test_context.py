@@ -12,12 +12,11 @@ async def test_generate_context_data(
     assert await generate_context_data(None, smyth_handler, mock_runner_process) == {
         "smyth": {
             "handler": {
-                "handler_config": {
+                "smyth_handler_config": {
                     "concurrency": 1,
                     "context_data_function": ANY,
                     "event_data_function": ANY,
-                    "fake_coldstart": False,
-                    "lambda_handler": ANY,
+                    "lambda_handler_path": "tests.conftest.example_handler",
                     "log_level": "INFO",
                     "name": "test_handler",
                     "strategy_generator": ANY,

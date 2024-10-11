@@ -1,5 +1,11 @@
 # Smyth
 
+[![docs](https://img.shields.io/badge/Docs-Smyth-f5c03b.svg?style=flat&logo=materialformkdocs)](https://mirumee.github.io/smyth/)
+![pypi](https://img.shields.io/pypi/v/smyth?style=flat)
+![licence](https://img.shields.io/pypi/l/smyth?style=flat)
+![pypi downloads](https://img.shields.io/pypi/dm/smyth?style=flat)
+![pyversion](https://img.shields.io/pypi/pyversions/smyth?style=flat)
+
 Smyth is a versatile tool designed to enhance your AWS Lambda development experience. It is a pure Python tool that allows for easy customization and state persistence, making your Lambda development more efficient and developer-friendly.
 
 ## Features

@@ -16,16 +16,20 @@ def smyth_handler(
     return SmythHandler(
         name="test_handler",
         url_path=re.compile(r"/test_handler"),
-        lambda_handler=mock_lambda_handler,
+        lambda_handler_path="tests.conftest.example_handler",
         event_data_function=mock_event_data_function,
         context_data_function=mock_context_data_function,
         strategy_generator=mock_strategy_generator,
     )
 
 
+def example_handler(event, context):
+    return {"statusCode": 200, "body": "Hello, World!"}
+
+
 @pytest.fixture
 def mock_lambda_handler():
-    return Mock()
+    return example_handler
 
 
 @pytest.fixture
