@@ -9,12 +9,6 @@ from smyth.types import RunnerProcessProtocol, SmythHandler, SmythHandlerState
 
 @pytest.fixture(autouse=True)
 def anyio_backend():
-    # uvloop is not available for Python 3.13
-    # https://github.com/MagicStack/uvloop/issues/622
-    # waiting for 0.21.0 release
-    # import sys
-    # if sys.version_info < (3, 13):
-    #     return "asyncio"
     return "asyncio", {"use_uvloop": True}
 
 

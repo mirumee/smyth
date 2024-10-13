@@ -47,7 +47,7 @@ Source = "https://github.com/mirumee/smyth"
 [project.optional-dependencies]
 dev = ["ipdb"]
 types = ["mypy>=1.0.0", "pytest", "types-toml", "pytest-asyncio"]
-docs = ["mkdocs-material"]
+docs = ["mkdocs-material", "termynal"]
 
 [tool.hatch.version]
 path = "src/smyth/__about__.py"
@@ -156,7 +156,7 @@ docstring-code-line-length = 80
 
 [tool.ruff.lint]
 select = ["E", "F", "G", "I", "N", "Q", "UP", "C90", "T20", "TID"]
-unfixable = ["UP007"]                                              # typer does not handle PEP604 annotations
+unfixable = ["UP007"] # typer does not handle PEP604 annotations
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
