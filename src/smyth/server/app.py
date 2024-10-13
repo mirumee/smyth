@@ -19,7 +19,11 @@ set_start_method("spawn", force=True)
 
 @asynccontextmanager
 async def lifespan(app: "SmythStarlette"):
-    app.smyth.start_runners()
+    try:
+        app.smyth.start_runners()
+    except Exception as error:
+        LOGGER.error("Error starting runners: %s", error)
+        raise
     yield
     app.smyth.stop_runners()
 
@@ -47,6 +51,7 @@ class SmythStarlette(Starlette):
 
 
 def create_app():
+    LOGGER.debug("Creating app")
     config = get_config(get_config_dict())
 
     smyth = Smyth()
@@ -55,7 +60,7 @@ def create_app():
         smyth.add_handler(
             name=handler_name,
             path=handler_config.url_path,
-            lambda_handler=import_attribute(handler_config.handler_path),
+            lambda_handler_path=handler_config.handler_path,
             timeout=handler_config.timeout,
             event_data_function=import_attribute(
                 handler_config.event_data_function_path
@@ -63,7 +68,6 @@ def create_app():
             context_data_function=import_attribute(
                 handler_config.context_data_function_path
             ),
-            fake_coldstart=handler_config.fake_coldstart,
             log_level=handler_config.log_level,
             concurrency=handler_config.concurrency,
             strategy_generator=import_attribute(handler_config.strategy_generator_path),

@@ -43,7 +43,7 @@ In your `etc` directory, create a `smyth_run.py` file.
     smyth.add_handler(
         name="hello",
         path="/hello",
-        lambda_handler=my_handler,
+        lambda_handler_path="smyth_run.my_handler",
         timeout=60,
         concurrency=10,
         strategy_generator=round_robin,
@@ -65,6 +65,7 @@ In your `etc` directory, create a `smyth_run.py` file.
     if __name__ == "__main__":
         with smyth:
             asyncio.run(main())
+
     ```
 
 ### Import and Declare the Basics
@@ -118,7 +119,7 @@ smyth = Smyth()
 smyth.add_handler(
     name="hello",
     path="/hello",
-    lambda_handler=my_handler,
+    lambda_handler_path="smyth_run.my_handler",
     timeout=60,
     concurrency=10,
     strategy_generator=round_robin,

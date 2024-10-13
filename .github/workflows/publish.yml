@@ -4,29 +4,38 @@ on:
   release:
     types:
       - published
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  PYTHONUNBUFFERED: "1"
+  FORCE_COLOR: "1"
 
 jobs:
-  pypi-publish:
-    name: upload release to PyPI
+  publish-to-pypi:
+    name: >-
+      Publish Python 🐍 distribution 📦 to PyPI
+    if: startsWith(github.ref, 'refs/tags/') # only publish to PyPI on tag pushes
     runs-on: ubuntu-latest
-    environment: release
+    environment:
+      name: pypi
+      url: https://pypi.org/p/smyth
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
+      contents: read
+
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: pyproject.toml
-
-      - name: Install Hatch
-        uses: pypa/hatch@257e27e51a6a5616ed08a39a408a21c35c9931bc
-
-      - name: Build package
-        run: hatch build
-
+      - name: Download all the dists from the release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          gh release download
+          '${{ github.ref_name }}' 
+          --dir dist/
+          --pattern * 
+          --repo '${{ github.repository }}'
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true

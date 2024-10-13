@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "smyth"
-version = "0.5.0"
-description = ''
+dynamic = ["version"]
+description = "Smyth is a versatile tool designed to enhance your AWS Lambda development experience. It is a pure Python tool that allows for easy customization and state persistence, making your Lambda development more efficient and developer-friendly."
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
+license = { file = "LICENSE.txt" }
 keywords = []
-authors = [{ name = "Mirumee", email = "it@mirumee.com" }]
+authors = [{ name = "Mirumee", email = "hello@mirumee.com" }]
 classifiers = [
     "Environment :: Console",
     "Intended Audience :: Developers",
@@ -19,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Software Development :: Build Tools",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -32,25 +33,34 @@ dependencies = [
     "toml",
     "pydantic",
     "rich",
+    "click",
     "asgiref",
     "typer",
+    "setproctitle",
 ]
-
-[project.optional-dependencies]
-dev = ["ipdb"]
-types = ["mypy>=1.0.0", "pytest", "types-toml", "pytest-asyncio"]
-docs = ["mkdocs-material", "termynal"]
-
-[tool.hatch.envs.default]
-features = ["dev", "types", "docs"]
 
 [project.urls]
 Documentation = "https://mirumee.github.io/smyth/"
 Issues = "https://github.com/mirumee/smyth/issues"
 Source = "https://github.com/mirumee/smyth"
 
-[project.scripts]
-smyth = "smyth.__main__:app"
+[project.optional-dependencies]
+dev = ["ipdb"]
+types = ["mypy>=1.0.0", "pytest", "types-toml", "pytest-asyncio"]
+docs = ["mkdocs-material", "termynal"]
+
+[tool.hatch.version]
+path = "src/smyth/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/smyth"]
+
+# Environment configuration
+
+## Default environment
+
+[tool.hatch.envs.default]
+features = ["dev", "types", "docs"]
 
 [tool.hatch.envs.default.scripts]
 check = [
@@ -59,41 +69,56 @@ check = [
     "hatch test --cover",
     "hatch run types:check",
 ]
-cov-html = ["hatch test --cover -- --cov-report=html"]
 
-[tool.hatch.envs.hatch-static-analysis]
-config-path = "ruff.toml"
+## Types environment
+
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/smyth}"
+
+[tool.mypy]
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "setproctitle.*"
+ignore_missing_imports = true
+
+
+## Test environment
 
 [tool.hatch.envs.hatch-test]
 dependencies = [
     "asynctest",
     "ipdb",
-    "pytest-asyncio",
+    "anyio",
+    "pytest-mock",
     "pytest-memray",
     "pytest-print",
     "pytest-cov",
+    "coverage[toml]",
+    "httpx",
+    # uvloop 0.20.0 is broken on Python 3.13
+    # https://github.com/MagicStack/uvloop/issues/622
+    # waiting for 0.21.0 release
+    "uvloop==0.21.0b1",
 ]
 
 [[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.10", "3.11", "3.12"]
+python = ["3.10", "3.11", "3.12", "3.13"]
 
-[tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/smyth tests}"
+## Docs environment
 
 [tool.hatch.envs.docs.scripts]
 build = "mkdocs build --clean --strict"
 serve = "mkdocs serve --dev-addr localhost:8000"
 deploy = "mkdocs gh-deploy --force"
 
-[tool.hatch.envs.coverage]
-detached = true
-dependencies = ["coverage[toml]>=6.2"]
-[tool.hatch.envs.coverage.scripts]
-combine = "coverage combine {args}"
-html = "coverage html --skip-covered --skip-empty"
+# Tool configuration
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/smyth"]
+## Pytest configuration
+
+[tool.pytest.ini_options]
+
+## Coverage configuration
 
 [tool.coverage.run]
 source_pkgs = ["smyth"]
@@ -102,16 +127,24 @@ parallel = true
 
 [tool.coverage.paths]
 smyth = ["src/smyth"]
-tests = ["tests"]
 
 [tool.coverage.report]
-exclude_lines = [
-    "no cov",
+exclude_also = [
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
-    "@abstract",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
 ]
-# fail_under = 90  # TODO: Uncomment when coverage is good enough
+omit = ["*/__about__.py", "*/__main__.py", "*/cli/__init__.py"]
+fail_under = 80
+
+## Ruff configuration
 
 [tool.ruff]
 line-length = 88
@@ -123,7 +156,7 @@ docstring-code-line-length = 80
 
 [tool.ruff.lint]
 select = ["E", "F", "G", "I", "N", "Q", "UP", "C90", "T20", "TID"]
-unfixable = ["UP007"]  # typer does not handle PEP604 annotations
+unfixable = ["UP007"] # typer does not handle PEP604 annotations
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
@@ -137,6 +170,3 @@ known-first-party = ["smyth"]
 [tool.ruff.lint.flake8-pytest-style]
 fixture-parentheses = false
 mark-parentheses = false
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"

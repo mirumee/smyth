@@ -34,16 +34,25 @@ class RunnerProcessProtocol(Protocol):
 
     async def asend(self, data) -> RunnerMessage | None: ...
 
+    def stop(self): ...
+
+    def send(self, data) -> RunnerMessage | None: ...
+
+    def is_alive(self) -> bool: ...
+
+    def terminate(self): ...
+
+    def join(self): ...
+
 
 @dataclass
 class SmythHandler:
     name: str
     url_path: Pattern[str]
-    lambda_handler: LambdaHandler
+    lambda_handler_path: str
     event_data_function: EventDataCallable
     context_data_function: ContextDataCallable
     strategy_generator: StrategyGenerator
     timeout: float | None = None
-    fake_coldstart: bool = False
     log_level: str = "INFO"
     concurrency: int = 1

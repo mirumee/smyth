@@ -1,12 +1,12 @@
-class LambdaRuntimeError(Exception):
+class SmythRuntimeError(Exception):
     """Generic Lambda Runtime exception."""
 
 
-class ConfigFileNotFoundError(LambdaRuntimeError):
+class ConfigFileNotFoundError(SmythRuntimeError):
     """Config file not found."""
 
 
-class DispatcherError(Exception):
+class DispatcherError(SmythRuntimeError):
     pass
 
 
@@ -22,9 +22,17 @@ class DestroyedOnLoadError(DispatcherError):
     pass
 
 
-class LambdaTimeoutError(DispatcherError):
-    pass
+class SubprocessError(SmythRuntimeError):
+    """Generic subprocess exception."""
 
 
-class LambdaInvocationError(DispatcherError):
-    pass
+class LambdaHandlerLoadError(SubprocessError):
+    """Error loading a Lambda handler."""
+
+
+class LambdaTimeoutError(SubprocessError):
+    """Lambda timeout."""
+
+
+class LambdaInvocationError(SubprocessError):
+    """Error invoking a Lambda."""

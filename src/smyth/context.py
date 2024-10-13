@@ -7,13 +7,12 @@ from smyth.types import RunnerProcessProtocol, SmythHandler
 
 
 async def generate_context_data(
-    request: Request | None, handler: SmythHandler, process: RunnerProcessProtocol
+    request: Request | None, smyth_handler: SmythHandler, process: RunnerProcessProtocol
 ):
     """
     The data returned by this function is passed to the
     `smyth.runner.FaneContext` as kwargs.
     """
-    asdict(handler)
     context: dict[str, Any] = {
         "smyth": {
             "process": {
@@ -23,11 +22,11 @@ async def generate_context_data(
                 "last_used_timestamp": process.last_used_timestamp,
             },
             "handler": {
-                "name": handler.name,
-                "handler_config": asdict(handler),
+                "name": smyth_handler.name,
+                "smyth_handler_config": asdict(smyth_handler),
             },
         }
     }
-    if handler.timeout is not None:
-        context["timeout"] = handler.timeout
+    if smyth_handler.timeout is not None:
+        context["timeout"] = smyth_handler.timeout
     return context

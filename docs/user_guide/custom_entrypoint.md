@@ -24,9 +24,10 @@ Here's an example `smyth_conf.py` file:
 
 ```python title="my_project/etc/smyth_conf.py" linenums="1"
 import uvicorn
-from starlette.requests import Request
-from smyth.smyth import Smyth
 from smyth.server.app import SmythStarlette
+from smyth.smyth import Smyth
+from starlette.requests import Request
+
 
 def my_handler(event, context):
     return {"statusCode": 200, "body": "Hello, World!"}
@@ -46,16 +47,17 @@ smyth = Smyth()
 smyth.add_handler(
     name="hello",
     path="/hello",
-    lambda_handler=my_handler,
+    lambda_handler_path="smyth_run.my_handler",
     timeout=1,
     concurrency=1,
-    event_data_generator=my_event_data_generator,
+    event_data_function=my_event_data_generator,
 )
 
 app = SmythStarlette(smyth=smyth, smyth_path_prefix="/smyth")
 
 if __name__ == "__main__":
-    uvicorn.run("smyth_conf:app", host="0.0.0.0", port=8080, reload=True)
+    uvicorn.run("smyth_run:app", host="0.0.0.0", port=8080, reload=True)
+
 ```
 
 Normally, the handler would be imported, but including the custom event generator in this file is a good use case. Use the `SmythStarlette` subclass of `Starlette` - it ensures all subprocesses are run at server start and killed on stop (using ASGI Lifetime). Create a Smyth instance and pass it to your `SmythStarlette` instance. Here, you can fine-tune logging, change Uvicorn settings, etc.
