@@ -96,6 +96,7 @@ dependencies = [
     "pytest-cov",
     "coverage[toml]",
     "httpx",
+    "uvloop",
 ]
 
 [[tool.hatch.envs.hatch-test.matrix]]

@@ -1,10 +1,9 @@
 name: Deploy documentation
 
 on:
-  push:
-    branches:
-      - main
-      - master
+  release:
+    types:
+      - published
   workflow_call:
   workflow_dispatch:
 
