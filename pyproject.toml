@@ -96,7 +96,10 @@ dependencies = [
     "pytest-cov",
     "coverage[toml]",
     "httpx",
-    "uvloop",
+    # uvloop 0.20.0 is broken on Python 3.13
+    # https://github.com/MagicStack/uvloop/issues/622
+    # waiting for 0.21.0 release
+    "uvloop==0.21.0b1",
 ]
 
 [[tool.hatch.envs.hatch-test.matrix]]
@@ -114,8 +117,6 @@ deploy = "mkdocs gh-deploy --force"
 ## Pytest configuration
 
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"
 
 ## Coverage configuration
 
