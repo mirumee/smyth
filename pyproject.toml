@@ -5,12 +5,12 @@ build-backend = "hatchling.build"
 [project]
 name = "smyth"
 dynamic = ["version"]
-description = ''
+description = "Smyth is a versatile tool designed to enhance your AWS Lambda development experience. It is a pure Python tool that allows for easy customization and state persistence, making your Lambda development more efficient and developer-friendly."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE.txt" }
 keywords = []
-authors = [{ name = "Mirumee", email = "it@mirumee.com" }]
+authors = [{ name = "Mirumee", email = "hello@mirumee.com" }]
 classifiers = [
     "Environment :: Console",
     "Intended Audience :: Developers",
@@ -19,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Software Development :: Build Tools",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -62,12 +63,17 @@ packages = ["src/smyth"]
 features = ["dev", "types", "docs"]
 
 [tool.hatch.envs.default.scripts]
-check = ["hatch fmt", "hatch test -a", "hatch test --cover", "hatch run types:check"]
+check = [
+    "hatch fmt",
+    "hatch test -a",
+    "hatch test --cover",
+    "hatch run types:check",
+]
 
 ## Types environment
 
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/smyth tests}"
+check = "mypy --install-types --non-interactive {args:src/smyth}"
 
 [tool.mypy]
 check_untyped_defs = true
@@ -83,15 +89,17 @@ ignore_missing_imports = true
 dependencies = [
     "asynctest",
     "ipdb",
-    "pytest-asyncio",
+    "anyio",
+    "pytest-mock",
     "pytest-memray",
     "pytest-print",
     "pytest-cov",
     "coverage[toml]",
+    "httpx",
 ]
 
 [[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.10", "3.11", "3.12"]
+python = ["3.10", "3.11", "3.12", "3.13"]
 
 ## Docs environment
 
@@ -119,14 +127,20 @@ parallel = true
 smyth = ["src/smyth"]
 
 [tool.coverage.report]
-exclude_lines = [
-    "no cov",
+exclude_also = [
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
-    "@abstract",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
 ]
 omit = ["*/__about__.py", "*/__main__.py", "*/cli/__init__.py"]
-# fail_under = 90  # TODO: Uncomment when coverage is good enough (0.9)
+fail_under = 80
 
 ## Ruff configuration
 
@@ -140,7 +154,7 @@ docstring-code-line-length = 80
 
 [tool.ruff.lint]
 select = ["E", "F", "G", "I", "N", "Q", "UP", "C90", "T20", "TID"]
-unfixable = ["UP007"]  # typer does not handle PEP604 annotations
+unfixable = ["UP007"]                                              # typer does not handle PEP604 annotations
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"

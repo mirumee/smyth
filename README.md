@@ -78,7 +78,6 @@ The combination of Uvicorn reload process and HTTP server process with what is b
 ## TODO
 
 - [ ] Write tests
-- [ ] Properly handle Uvicorn exit, kill the LambdaProcesses gracefully
 - [x] Publish on PyPi
 
 ## Name

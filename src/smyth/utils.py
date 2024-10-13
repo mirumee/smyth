@@ -59,7 +59,7 @@ class SmythStatusRouteFilter(logging.Filter):
         return record.getMessage().find(self.smyth_path_prefix) == -1
 
 
-class LogRender:
+class LogRender:  # pragma: no cover
     """
     Derived from `rich._log_render.LogRender`.
     """

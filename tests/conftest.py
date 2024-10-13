@@ -1,9 +1,15 @@
 import re
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
+from smyth.config import Config, HandlerConfig
 from smyth.types import RunnerProcessProtocol, SmythHandler, SmythHandlerState
+
+
+@pytest.fixture(autouse=True)
+def anyio_backend():
+    return "asyncio", {"use_uvloop": True}
 
 
 @pytest.fixture
@@ -23,6 +29,25 @@ def smyth_handler(
     )
 
 
+@pytest.fixture
+def config():
+    return Config(
+        host="0.0.0.0",
+        port=8080,
+        handlers={
+            "order_handler": HandlerConfig(
+                handler_path="tests.conftest.example_handler",
+                url_path=r"/test_handler",
+            ),
+            "product_handler": HandlerConfig(
+                handler_path="tests.conftest.example_handler",
+                url_path=r"/products/{path:path}",
+            ),
+        },
+        log_level="INFO",
+    )
+
+
 def example_handler(event, context):
     return {"statusCode": 200, "body": "Hello, World!"}
 
@@ -34,12 +59,12 @@ def mock_lambda_handler():
 
 @pytest.fixture
 def mock_event_data_function():
-    return Mock()
+    return AsyncMock()
 
 
 @pytest.fixture
 def mock_context_data_function():
-    return Mock()
+    return AsyncMock()
 
 
 @pytest.fixture

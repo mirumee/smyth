@@ -5,11 +5,27 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 
 
 class FakeLambdaContext(LambdaContext):
-    def __init__(self, name="Fake", version="LATEST", timeout=6, **kwargs):
+    def __init__(
+        self,
+        name: str | None = None,
+        version: str | None = "LATEST",
+        timeout: int | None = None,
+        **kwargs,
+    ):
+        if name is None:
+            name = "Fake"
         self.name = name
+
+        if version is None:
+            version = "LATEST"
         self.version = version
+
         self.created = time()
+
+        if timeout is None:
+            timeout = 6
         self.timeout = timeout
+
         for key, value in kwargs.items():
             setattr(self, key, value)
 

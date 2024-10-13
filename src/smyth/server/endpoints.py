@@ -5,7 +5,7 @@ from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from smyth.event import generate_lambda_invokation_event_data
+from smyth.event import generate_lambda_invocation_event_data
 from smyth.exceptions import LambdaInvocationError, LambdaTimeoutError, SubprocessError
 from smyth.smyth import Smyth
 from smyth.types import EventDataCallable, SmythHandler
@@ -17,7 +17,7 @@ async def dispatch(
     smyth: Smyth,
     smyth_handler: SmythHandler,
     request: Request,
-    event_data_generator: EventDataCallable | None = None,
+    event_data_function: EventDataCallable | None = None,
 ):
     """
     Dispatches a request to Smyth and translates a Smyth
@@ -25,7 +25,7 @@ async def dispatch(
     """
     try:
         result = await smyth.dispatch(
-            smyth_handler, request, event_data_function=event_data_generator
+            smyth_handler, request, event_data_function=event_data_function
         )
     except LambdaInvocationError as error:
         return Response(str(error), status_code=status.HTTP_502_BAD_GATEWAY)
@@ -61,12 +61,12 @@ async def invocation_endpoint(request: Request):
         return Response(
             f"Function {function} not found", status_code=status.HTTP_404_NOT_FOUND
         )
-    smyth_handler.event_data_function = generate_lambda_invokation_event_data
+    smyth_handler.event_data_function = generate_lambda_invocation_event_data
     return await dispatch(
         smyth,
         smyth_handler,
         request,
-        event_data_generator=generate_lambda_invokation_event_data,
+        event_data_function=generate_lambda_invocation_event_data,
     )
 
 
