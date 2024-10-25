@@ -32,8 +32,9 @@ jobs:
         run: >-
           gh release download
           '${{ github.ref_name }}' 
+          -p '*.whl' 
+          -p '*.tar.gz'
           --dir dist/
-          --pattern * 
           --repo '${{ github.repository }}'
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
