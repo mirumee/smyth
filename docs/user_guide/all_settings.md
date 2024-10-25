@@ -42,10 +42,6 @@ Here's a list of all the settings, including those that are simpler but equally 
 
 `context_data_function_path` - `str` (default: `"smyth.context.generate_context_data"`) A function similar to the [event generator](event_functions.md), but it constructs the `context`, adding some metadata from Smyth's runtime. You can create and use your own.
 
-### Fake Coldstart
-
-`fake_coldstart` - `bool` (default: `False`) Makes the subprocess `time.sleep` for a random time between 0.5 and 1 second when a subprocess is cold, imitating the longer first response time of real Lambdas.
-
 ### Log Level
 
 `log_level` - `str` (default: `"INFO"`) Log level for Smyth's runner function, which is still part of Smyth but already running in the subprocess. Note that the logging of your Lambda handler code should be set separately.

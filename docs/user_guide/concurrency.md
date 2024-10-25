@@ -30,7 +30,6 @@ concurrency = 2
 handler_path = "smyth_test_app.handlers.product_handler"
 url_path = "/products/{path:path}"
 concurrency = 2
-fake_coldstart = true
 strategy_function_path = "smyth.runner.strategy.round_robin"
 ```
 

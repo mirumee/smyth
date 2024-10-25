@@ -1,9 +1,11 @@
 name: Deploy documentation
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types:
+      - published
+  workflow_call:
+  workflow_dispatch:
 
 jobs:
   docs-publish:

@@ -104,6 +104,9 @@ sequenceDiagram
 
     STAR->>STAR: Lookup handlers by path
     STAR->>+PROC: Send event and context
+    alt "Process is cold"
+        PROC<<->>HAND: Import handler
+    end
     PROC->>+HAND: Invoke handler
     HAND->>-PROC: Result
     PROC->>-STAR: Result

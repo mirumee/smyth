@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 
+from smyth.exceptions import NoAvailableProcessError
 from smyth.types import RunnerProcessProtocol, SmythHandlerState
 
 
@@ -26,16 +27,17 @@ def first_warm(
     lead to faster response times."""
 
     while True:
-        best_candidate = None
+        warm = None
+        cold = None
         for process in processes[handler_name]:
-            if (
-                process.state == SmythHandlerState.WARM
-                or process.state == SmythHandlerState.COLD
-                and not best_candidate
-            ):
-                best_candidate = process
+            if process.state == SmythHandlerState.WARM:
+                warm = process
+            elif process.state == SmythHandlerState.COLD:
+                cold = process
 
-        if best_candidate is None:
-            raise Exception("No process available")
-
-        yield best_candidate
+        if warm is not None:
+            yield warm
+        elif cold is not None:
+            yield cold
+        else:
+            raise NoAvailableProcessError("No process available")

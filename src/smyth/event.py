@@ -28,5 +28,5 @@ async def generate_api_gw_v2_event_data(request: Request):
     }
 
 
-async def generate_lambda_invokation_event_data(request: Request):
+async def generate_lambda_invocation_event_data(request: Request):
     return await request.json()
