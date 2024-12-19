@@ -4,9 +4,11 @@ import logging.config
 import signal
 import sys
 import traceback
+from collections.abc import Generator
 from multiprocessing import Process, Queue, set_start_method
 from queue import Empty
 from time import time
+from types import FrameType
 
 from asgiref.sync import sync_to_async
 from setproctitle import setproctitle
@@ -18,7 +20,14 @@ from smyth.exceptions import (
     SubprocessError,
 )
 from smyth.runner.fake_context import FakeLambdaContext
-from smyth.types import LambdaHandler, RunnerMessage, SmythHandlerState
+from smyth.types import (
+    EventData,
+    LambdaHandler,
+    LambdaResponse,
+    RunnerInputMessage,
+    RunnerOutputMessage,
+    SmythHandlerState,
+)
 from smyth.utils import get_logging_config, import_attribute
 
 set_start_method("spawn", force=True)
@@ -37,8 +46,8 @@ class RunnerProcess(Process):
         self.last_used_timestamp = 0
         self.state = SmythHandlerState.COLD
 
-        self.input_queue: Queue[RunnerMessage] = Queue(maxsize=1)
-        self.output_queue: Queue[RunnerMessage] = Queue(maxsize=1)
+        self.input_queue: Queue[RunnerInputMessage] = Queue(maxsize=1)
+        self.output_queue: Queue[RunnerOutputMessage] = Queue(maxsize=1)
 
         self.lambda_handler_path = lambda_handler_path
         self.log_level = log_level
@@ -46,7 +55,7 @@ class RunnerProcess(Process):
             name=name,
         )
 
-    def stop(self):
+    def stop(self) -> None:
         self.input_queue.put({"type": "smyth.stop"})
         self.join()
         self.input_queue.close()
@@ -54,7 +63,7 @@ class RunnerProcess(Process):
         self.input_queue.join_thread()
         self.output_queue.join_thread()
 
-    def send(self, data) -> RunnerMessage | None:
+    def send(self, data: RunnerInputMessage) -> LambdaResponse | None:
         LOGGER.debug("Sending data to process %s: %s", self.name, data)
         self.task_counter += 1
         self.last_used_timestamp = time()
@@ -79,29 +88,38 @@ class RunnerProcess(Process):
 
             LOGGER.debug("Received message from process %s: %s", self.name, message)
             if message["type"] == "smyth.lambda.status":
-                self.state = SmythHandlerState(message["status"])
+                if not (status := message.get("status")):
+                    LOGGER.error("No status provided")
+                    continue
+                self.state = SmythHandlerState(status)
             elif message["type"] == "smyth.lambda.response":
                 self.state = SmythHandlerState.WARM
-                return message["response"]
+                if not (response := message.get("response")):
+                    LOGGER.error("No response provided")
+                    continue
+                return response
             elif message["type"] == "smyth.lambda.error":
                 self.state = SmythHandlerState.WARM
-                if message["response"]["type"] == "LambdaTimeoutError":
-                    raise LambdaTimeoutError(message["response"]["message"])
+                if not (error_data := message.get("error")):
+                    LOGGER.error("No error provided")
+                    continue
+                if error_data["type"] == "LambdaTimeoutError":
+                    raise LambdaTimeoutError(error_data["message"])
                 else:
-                    raise LambdaInvocationError(message["response"]["message"])
+                    raise LambdaInvocationError(error_data["message"])
 
     @sync_to_async(thread_sensitive=False)
-    def asend(self, data) -> RunnerMessage | None:
+    def asend(self, data: RunnerInputMessage) -> LambdaResponse | None:
         return self.send(data)
 
     # Backend
 
-    def run(self):
+    def run(self) -> None:
         setproctitle(f"smyth:{self.name}")
         logging.config.dictConfig(get_logging_config(self.log_level))
         self.lambda_invoker__()
 
-    def get_message__(self):
+    def get_message__(self) -> Generator[RunnerInputMessage, None, None]:
         while True:
             try:
                 message = self.input_queue.get(block=True, timeout=1)
@@ -117,16 +135,22 @@ class RunnerProcess(Process):
                     return
                 yield message
 
-    def get_event__(self, message):
-        return message["event"]
+    def get_event__(self, message: RunnerInputMessage) -> EventData:
+        if (event := message.get("event")) is None:
+            raise LambdaInvocationError("No event data provided")
+        return event
 
-    def get_context__(self, message):
-        return FakeLambdaContext(**message["context"])
+    def get_context__(self, message: RunnerInputMessage) -> FakeLambdaContext:
+        if (context := message.get("context")) is None:
+            raise LambdaInvocationError("No context data provided")
+        return FakeLambdaContext(**context)
 
-    def import_handler__(self, lambda_handler_path, event, context):
+    def import_handler__(
+        self, lambda_handler_path: str, event: EventData, context: FakeLambdaContext
+    ) -> LambdaHandler:
         LOGGER.info("Starting cold, importing '%s'", lambda_handler_path)
         try:
-            handler = import_attribute(lambda_handler_path)
+            handler: LambdaHandler = import_attribute(lambda_handler_path)
         except ImportError as error:
             raise LambdaHandlerLoadError(
                 f"Error importing handler: {error}, module not found"
@@ -146,14 +170,14 @@ class RunnerProcess(Process):
             )
         return handler
 
-    def set_status__(self, status: SmythHandlerState):
+    def set_status__(self, status: SmythHandlerState) -> None:
         self.output_queue.put({"type": "smyth.lambda.status", "status": status})
 
     @staticmethod
-    def timeout_handler__(signum, frame):
+    def timeout_handler__(signum: int, frame: FrameType | None) -> None:
         raise LambdaTimeoutError("Lambda timeout")
 
-    def lambda_invoker__(self):
+    def lambda_invoker__(self) -> None:
         sys.stdin = open("/dev/stdin")
         lambda_handler: LambdaHandler | None = None
         self.set_status__(SmythHandlerState.COLD)
@@ -188,7 +212,7 @@ class RunnerProcess(Process):
                 self.output_queue.put(
                     {
                         "type": "smyth.lambda.error",
-                        "response": {
+                        "error": {
                             "type": type(error).__name__,
                             "message": str(error),
                             "stacktrace": traceback.format_exc(),

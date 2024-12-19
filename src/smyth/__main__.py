@@ -50,7 +50,7 @@ def run(
     quiet: Annotated[
         bool, typer.Option(help="Effectively the same as --log-level=ERROR")
     ] = False,
-):
+) -> None:
     if host:
         config.host = host
     if port:
