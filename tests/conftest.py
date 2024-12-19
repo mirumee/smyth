@@ -59,12 +59,12 @@ def mock_lambda_handler():
 
 @pytest.fixture
 def mock_event_data_function():
-    return AsyncMock()
+    return AsyncMock(return_value={"key": "value"})
 
 
 @pytest.fixture
 def mock_context_data_function():
-    return AsyncMock()
+    return AsyncMock(return_value={"key": "value"})
 
 
 @pytest.fixture

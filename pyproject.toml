@@ -75,14 +75,6 @@ check = [
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/smyth}"
 
-[tool.mypy]
-check_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = "setproctitle.*"
-ignore_missing_imports = true
-
-
 ## Test environment
 
 [tool.hatch.envs.hatch-test]
@@ -117,6 +109,25 @@ deploy = "mkdocs gh-deploy --force"
 ## Pytest configuration
 
 [tool.pytest.ini_options]
+
+## Types configuration
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src/**/*.py"]
+exclude = "tests/.*"
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_reexport = true
+disallow_untyped_defs = true
+strict = true
+disable_error_code = ["import-untyped"]
+
+[[tool.mypy.overrides]]
+module = "setproctitle.*"
+ignore_missing_imports = true
 
 ## Coverage configuration
 
@@ -162,7 +173,7 @@ unfixable = ["UP007"] # typer does not handle PEP604 annotations
 ban-relative-imports = "all"
 
 [tool.ruff.lint.mccabe]
-max-complexity = 10
+max-complexity = 12
 
 [tool.ruff.lint.isort]
 known-first-party = ["smyth"]

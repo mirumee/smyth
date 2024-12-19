@@ -1,6 +1,8 @@
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from multiprocessing import set_start_method
+from typing import Any
 
 from starlette.applications import Starlette
 
@@ -18,7 +20,7 @@ set_start_method("spawn", force=True)
 
 
 @asynccontextmanager
-async def lifespan(app: "SmythStarlette"):
+async def lifespan(app: "SmythStarlette") -> AsyncGenerator[None, None]:
     try:
         app.smyth.start_runners()
     except Exception as error:
@@ -31,7 +33,7 @@ async def lifespan(app: "SmythStarlette"):
 class SmythStarlette(Starlette):
     smyth: Smyth
 
-    def __init__(self, smyth: Smyth, smyth_path_prefix: str, *args, **kwargs):
+    def __init__(self, smyth: Smyth, smyth_path_prefix: str, *args: Any, **kwargs: Any):
         self.smyth = smyth
         kwargs["lifespan"] = lifespan
         super().__init__(*args, **kwargs)
@@ -50,7 +52,7 @@ class SmythStarlette(Starlette):
         )
 
 
-def create_app():
+def create_app() -> SmythStarlette:
     LOGGER.debug("Creating app")
     config = get_config(get_config_dict())
 

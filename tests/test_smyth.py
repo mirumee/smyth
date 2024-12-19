@@ -77,9 +77,9 @@ async def test_smyth_dispatch(
             mock_request,
         )
 
-    assert mock_asend.await_args[0][0]["type"] == "smyth.lambda.invoke"
-    assert mock_asend.await_args[0][0]["event"] == await mock_event_data_function()
-    assert mock_asend.await_args[0][0]["context"] == await mock_context_data_function()
+    assert mock_asend.await_args[0][0].type == "smyth.lambda.invoke"
+    assert mock_asend.await_args[0][0].event == await mock_event_data_function()
+    assert mock_asend.await_args[0][0].context == await mock_context_data_function()
     assert response == mock_asend.return_value
 
 
@@ -95,7 +95,7 @@ async def test_invoke(
             event_data,
         )
 
-    assert mock_asend.await_args[0][0]["type"] == "smyth.lambda.invoke"
-    assert mock_asend.await_args[0][0]["event"] == event_data
-    assert mock_asend.await_args[0][0]["context"] == await mock_context_data_function()
+    assert mock_asend.await_args[0][0].type == "smyth.lambda.invoke"
+    assert mock_asend.await_args[0][0].event == event_data
+    assert mock_asend.await_args[0][0].context == await mock_context_data_function()
     assert response == mock_asend.return_value

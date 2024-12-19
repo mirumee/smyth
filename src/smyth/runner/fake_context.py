@@ -1,5 +1,7 @@
 import sys
+from collections.abc import Callable
 from time import strftime, time
+from typing import Any
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
@@ -10,7 +12,7 @@ class FakeLambdaContext(LambdaContext):
         name: str | None = None,
         version: str | None = "LATEST",
         timeout: int | None = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         if name is None:
             name = "Fake"
@@ -39,31 +41,32 @@ class FakeLambdaContext(LambdaContext):
         )
 
     @property
-    def function_name(self):
+    def function_name(self) -> str:
         return self.name
 
     @property
-    def function_version(self):
+    def function_version(self) -> str:
         return self.version
 
     @property
-    def invoked_function_arn(self):
+    def invoked_function_arn(self) -> str:
         return "arn:aws:lambda:serverless:" + self.name
 
     @property
-    def memory_limit_in_mb(self):
+    # This indeed is a string in the real context hence the ignore[override]
+    def memory_limit_in_mb(self) -> str:  # type: ignore[override]
         return "1024"
 
     @property
-    def aws_request_id(self):
+    def aws_request_id(self) -> str:
         return "1234567890"
 
     @property
-    def log_group_name(self):
+    def log_group_name(self) -> str:
         return "/aws/lambda/" + self.name
 
     @property
-    def log_stream_name(self):
+    def log_stream_name(self) -> str:
         return (
             strftime("%Y/%m/%d")
             + "/[$"
@@ -72,5 +75,5 @@ class FakeLambdaContext(LambdaContext):
         )
 
     @property
-    def log(self):
+    def log(self) -> Callable[[str], int] | Any:
         return sys.stdout.write

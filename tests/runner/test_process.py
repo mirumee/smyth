@@ -5,7 +5,10 @@ import pytest
 from smyth.exceptions import LambdaHandlerLoadError, LambdaTimeoutError
 from smyth.runner.fake_context import FakeLambdaContext
 from smyth.runner.process import RunnerProcess
-from smyth.types import SmythHandlerState
+from smyth.types import (
+    RunnerInputMessage,
+    SmythHandlerState,
+)
 
 pytestmark = pytest.mark.anyio
 
@@ -64,34 +67,39 @@ def test_run(mocker, mock_setproctitle, mock_logging_dictconfig, runner_process)
 def test_get_message(mocker, runner_process):
     mock_input_queue = mocker.patch.object(runner_process, "input_queue", autospec=True)
     mock_input_queue.get.side_effect = [
-        {"type": "smyth.lambda.invoke", "event": {}, "context": {}},
+        RunnerInputMessage(type="smyth.lambda.invoke", event={}, context={}),
         Empty,
-        {"type": "smyth.lambda.invoke", "event": {}, "context": {}},
-        {"type": "smyth.stop"},
+        RunnerInputMessage(type="smyth.lambda.invoke", event={}, context={}),
+        RunnerInputMessage(type="smyth.stop"),
     ]
 
     messages = list(runner_process.get_message__())
 
     assert len(messages) == 2
-    assert messages[0]["type"] == "smyth.lambda.invoke"
-    assert messages[1]["type"] == "smyth.lambda.invoke"
+    assert messages[0].type == "smyth.lambda.invoke"
+    assert messages[1].type == "smyth.lambda.invoke"
 
 
 def test_get_event(mocker, runner_process):
     assert (
-        runner_process.get_event__({"type": "smyth.lambda.invoke", "event": {}}) == {}
+        runner_process.get_event__(
+            RunnerInputMessage(type="smyth.lambda.invoke", event={}, context={})
+        )
+        == {}
     )
 
 
 def test_get_context(mocker, runner_process):
     assert isinstance(
-        runner_process.get_context__({"type": "smyth.lambda.invoke", "context": {}}),
+        runner_process.get_context__(
+            RunnerInputMessage(type="smyth.lambda.invoke", event={}, context={})
+        ),
         FakeLambdaContext,
     )
 
     assert (
         runner_process.get_context__(
-            {"type": "smyth.lambda.invoke", "context": {}}
+            RunnerInputMessage(type="smyth.lambda.invoke", event={}, context={})
         ).timeout
         == 6
     )
@@ -130,6 +138,7 @@ def test_timeout_handler(runner_process):
 
 def test_lambda_invoker(mocker, runner_process):
     mock_handler = mocker.Mock()
+    mock_handler.return_value = {"statusCode": 200, "body": "Hello, World!"}
     mock_import_attribute = mocker.patch(
         "smyth.runner.process.import_attribute",
         autospec=True,
@@ -145,8 +154,12 @@ def test_lambda_invoker(mocker, runner_process):
         "get_message__",
         autospec=True,
         return_value=[
-            {"type": "smyth.lambda.invoke", "event": {"test": "1"}, "context": {}},
-            {"type": "smyth.lambda.invoke", "event": {"test": "2"}, "context": {}},
+            RunnerInputMessage(
+                type="smyth.lambda.invoke", event={"test": "1"}, context={}
+            ),
+            RunnerInputMessage(
+                type="smyth.lambda.invoke", event={"test": "2"}, context={}
+            ),
         ],
     )
     mocker.patch.object(

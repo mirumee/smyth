@@ -4,6 +4,7 @@ from starlette.testclient import TestClient
 from smyth.exceptions import LambdaInvocationError, LambdaTimeoutError, SubprocessError
 from smyth.server.app import SmythStarlette
 from smyth.server.endpoints import dispatch
+from smyth.types import LambdaResponse
 
 pytestmark = pytest.mark.anyio
 
@@ -62,11 +63,11 @@ async def test_dispatch(
 ):
     mock_request = mocker.Mock()
     mock_event_data_function = mocker.Mock()
-    mock_smyth_dispatch.return_value = {
-        "body": "Hello, World!",
-        "statusCode": 200,
-        "headers": {},
-    }
+    mock_smyth_dispatch.return_value = LambdaResponse(
+        body="Hello, World!",
+        status_code=200,
+        headers={},
+    )
     mock_smyth_dispatch.side_effect = side_effect
     response = await dispatch(
         smyth=mock_smyth,
@@ -108,11 +109,11 @@ def test_status_endpoint(test_client):
 
 
 def test_invocation_endpoint(test_client, mock_smyth, mock_smyth_dispatch):
-    mock_smyth_dispatch.return_value = {
-        "body": "Hello, World!",
-        "statusCode": 200,
-        "headers": {},
-    }
+    mock_smyth_dispatch.return_value = LambdaResponse(
+        body="Hello, World!",
+        status_code=200,
+        headers={},
+    )
     response = test_client.post(
         "/2015-03-31/functions/order_handler/invocations",
         json={"test": "test"},

@@ -8,7 +8,7 @@ from smyth.types import RunnerProcessProtocol, SmythHandler
 
 async def generate_context_data(
     request: Request | None, smyth_handler: SmythHandler, process: RunnerProcessProtocol
-):
+) -> dict[str, Any]:
     """
     The data returned by this function is passed to the
     `smyth.runner.FaneContext` as kwargs.
