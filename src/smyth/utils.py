@@ -4,6 +4,7 @@ from datetime import datetime
 from importlib import import_module
 from logging import LogRecord
 from pathlib import Path
+from typing import Any
 
 from rich.console import Console, ConsoleRenderable, RenderableType
 from rich.logging import RichHandler
@@ -14,8 +15,10 @@ from rich.traceback import Traceback
 FormatTimeCallable = Callable[[datetime], Text]
 
 
-def get_logging_config(log_level: str, filter_path_prefix: str | None = None) -> dict:
-    logging_config = {
+def get_logging_config(
+    log_level: str, filter_path_prefix: str | None = None
+) -> dict[str, Any]:
+    logging_config: dict[str, Any] = {
         "version": 1,
         "disable_existing_loggers": False,
         "filters": {},
@@ -42,11 +45,11 @@ def get_logging_config(log_level: str, filter_path_prefix: str | None = None) ->
         },
     }
     if filter_path_prefix:
-        logging_config["filters"]["smyth_api_filter"] = {  # type: ignore[index]
+        logging_config["filters"]["smyth_api_filter"] = {
             "()": "smyth.utils.SmythStatusRouteFilter",
             "smyth_path_prefix": filter_path_prefix,
         }
-        logging_config["handlers"]["console"]["filters"].append("smyth_api_filter")  # type: ignore[index]
+        logging_config["handlers"]["console"]["filters"].append("smyth_api_filter")
     return logging_config
 
 
@@ -55,7 +58,7 @@ class SmythStatusRouteFilter(logging.Filter):
         super().__init__(name)
         self.smyth_path_prefix = smyth_path_prefix
 
-    def filter(self, record):
+    def filter(self, record: LogRecord) -> bool:
         return record.getMessage().find(self.smyth_path_prefix) == -1
 
 
@@ -99,7 +102,12 @@ class LogRender:  # pragma: no cover
             style="log.process",
         )
 
-    def create_time_row(self, log_time, console, time_format) -> RenderableType | None:
+    def create_time_row(
+        self,
+        log_time: datetime | None,
+        console: Console,
+        time_format: str | FormatTimeCallable | None,
+    ) -> RenderableType | None:
         log_time = log_time or console.get_datetime()
         time_format = time_format or self.time_format
         if callable(time_format):
@@ -183,7 +191,7 @@ class LogRender:  # pragma: no cover
 
 
 class SmythRichHandler(RichHandler):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.rich_render = LogRender(
             show_time=True,
@@ -222,7 +230,7 @@ class SmythRichHandler(RichHandler):
         return log_renderable
 
 
-def import_attribute(python_path: str):
+def import_attribute(python_path: str) -> Any:
     module_name, handler_name = python_path.rsplit(".", 1)
     module = import_module(module_name)
     return getattr(module, handler_name)

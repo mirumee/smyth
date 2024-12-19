@@ -18,7 +18,7 @@ async def dispatch(
     smyth_handler: SmythHandler,
     request: Request,
     event_data_function: EventDataCallable | None = None,
-):
+) -> Response:
     """
     Dispatches a request to Smyth and translates a Smyth
     response to a Starlette response.
@@ -46,13 +46,13 @@ async def dispatch(
     )
 
 
-async def lambda_invoker_endpoint(request: Request):
+async def lambda_invoker_endpoint(request: Request) -> Response:
     smyth: Smyth = request.app.smyth
     smyth_handler = smyth.get_handler_for_request(request.url.path)
     return await dispatch(smyth, smyth_handler, request)
 
 
-async def invocation_endpoint(request: Request):
+async def invocation_endpoint(request: Request) -> Response:
     smyth: Smyth = request.app.smyth
     function = request.path_params["function"]
     try:
@@ -70,7 +70,7 @@ async def invocation_endpoint(request: Request):
     )
 
 
-async def status_endpoint(request: Request):
+async def status_endpoint(request: Request) -> Response:
     smyth: Smyth = request.app.smyth
 
     response_data: dict[str, Any] = {
@@ -78,11 +78,11 @@ async def status_endpoint(request: Request):
     }
 
     for process_group_name, process_group in smyth.processes.items():
-        response_data["lambda handlers"][process_group_name] = {  # type: ignore[index]
+        response_data["lambda handlers"][process_group_name] = {
             "processes": [],
         }
         for process in process_group:
-            response_data["lambda handlers"][process_group_name]["processes"].append(  # type: ignore[index]
+            response_data["lambda handlers"][process_group_name]["processes"].append(
                 {
                     "state": process.state,
                     "task_counter": process.task_counter,
