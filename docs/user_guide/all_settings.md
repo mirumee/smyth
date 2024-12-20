@@ -53,3 +53,24 @@ Here's a list of all the settings, including those that are simpler but equally 
 ### Strategy Generator
 
 `strategy_generator_path` - `str` (default: `"smyth.runner.strategy.first_warm"`) Read more about [dispatch strategies here](concurrency.md/#dispatch-strategy).
+
+
+## `pyproject.toml` example
+
+```toml title='pyproject.toml' linenums="1"
+[tool.smyth]
+host = "0.0.0.0"
+port = 8080
+log_level = "INFO"
+smyth_path_prefix = "/smyth"
+
+[tool.smyth.handlers.lambda_handler]
+handler_path = "nimara_search_algolia_backend.app.lambda_handler"
+url_path = "{path:path}"
+timeout = 300
+event_data_function_path = "smyth.event.generate_api_gw_v2_event_data"
+context_data_function_path = "smyth.context.generate_context_data"
+log_level = "DEBUG"
+concurrency = 3
+strategy_generator_path = "smyth.runner.strategy.first_warm"
+```

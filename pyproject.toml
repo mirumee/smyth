@@ -48,7 +48,7 @@ Source = "https://github.com/mirumee/smyth"
 [project.optional-dependencies]
 dev = ["ipdb"]
 types = ["mypy>=1.0.0", "pytest", "types-toml", "pytest-asyncio"]
-docs = ["mkdocs-material", "termynal"]
+docs = ["mkdocs-material~=9.0", "termynal"]
 
 [tool.hatch.version]
 path = "src/smyth/__about__.py"
