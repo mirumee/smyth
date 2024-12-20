@@ -8,7 +8,8 @@ dynamic = ["version"]
 description = "Smyth is a versatile tool designed to enhance your AWS Lambda development experience. It is a pure Python tool that allows for easy customization and state persistence, making your Lambda development more efficient and developer-friendly."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { file = "LICENSE.txt" }
+license = "BSD-3-Clause"
+license-files = ["LICENSE.txt"]
 keywords = []
 authors = [{ name = "Mirumee", email = "hello@mirumee.com" }]
 classifiers = [
