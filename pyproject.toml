@@ -174,7 +174,7 @@ unfixable = ["UP007"] # typer does not handle PEP604 annotations
 ban-relative-imports = "all"
 
 [tool.ruff.lint.mccabe]
-max-complexity = 12
+max-complexity = 10
 
 [tool.ruff.lint.isort]
 known-first-party = ["smyth"]
