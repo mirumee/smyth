@@ -1,6 +1,7 @@
 import inspect
 import logging
 import logging.config
+import os
 import signal
 import sys
 import traceback
@@ -44,11 +45,25 @@ class RunnerProcess(Process):
     last_used_timestamp: float
     state: SmythHandlerState
 
-    def __init__(self, name: str, lambda_handler_path: str, log_level: str = "INFO"):
+    def __init__(
+        self,
+        name: str,
+        lambda_handler_path: str,
+        log_level: str = "INFO",
+        environ_override: dict[str, str] | None = None,
+    ):
         self.name = name
         self.task_counter = 0
         self.last_used_timestamp = 0
         self.state = SmythHandlerState.COLD
+        self.environ_override = environ_override
+
+        self.environ: dict[str, str] = {
+            "_HANDLER": lambda_handler_path,
+        }
+
+        if environ_override:
+            self.environ.update(environ_override)
 
         self.input_queue: Queue[RunnerInputMessage] = Queue(maxsize=1)
         self.output_queue: Queue[RunnerOutputMessage] = Queue(maxsize=1)
@@ -113,6 +128,7 @@ class RunnerProcess(Process):
     def run(self) -> None:
         setproctitle(f"smyth:{self.name}")
         logging.config.dictConfig(get_logging_config(self.log_level))
+        os.environ.update(self.environ)
         self.lambda_invoker__()
 
     def get_message__(self) -> Generator[RunnerInputMessage, None, None]:
@@ -197,7 +213,7 @@ class RunnerProcess(Process):
                 self.set_status__(SmythHandlerState.WARM)
 
             signal.signal(signal.SIGALRM, self.timeout_handler__)
-            signal.alarm(int(context.timeout))
+            signal.alarm(int(context._timeout))
             self.set_status__(SmythHandlerState.WORKING)
             try:
                 response = lambda_handler(event, context)

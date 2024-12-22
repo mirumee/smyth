@@ -1,3 +1,4 @@
+import os
 import sys
 from collections.abc import Callable
 from time import strftime, time
@@ -10,23 +11,23 @@ class FakeLambdaContext(LambdaContext):
     def __init__(
         self,
         name: str | None = None,
-        version: str | None = "LATEST",
+        version: str | None = None,
         timeout: int | None = None,
         **kwargs: Any,
     ):
         if name is None:
-            name = "Fake"
-        self.name = name
+            name = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "Fake")
+        self._name = name
 
         if version is None:
-            version = "LATEST"
-        self.version = version
+            version = os.environ.get("AWS_LAMBDA_FUNCTION_VERSION", "$LATEST")
+        self._version = version
 
-        self.created = time()
+        self._created = time()
 
         if timeout is None:
             timeout = 6
-        self.timeout = timeout
+        self._timeout = timeout
 
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -34,28 +35,28 @@ class FakeLambdaContext(LambdaContext):
     def get_remaining_time_in_millis(self) -> int:  # type: ignore[override]
         return int(
             max(
-                (self.timeout * 1000)
-                - (int(round(time() * 1000)) - int(round(self.created * 1000))),
+                (self._timeout * 1000)
+                - (int(round(time() * 1000)) - int(round(self._created * 1000))),
                 0,
             )
         )
 
     @property
     def function_name(self) -> str:
-        return self.name
+        return self._name
 
     @property
     def function_version(self) -> str:
-        return self.version
+        return self._version
 
     @property
     def invoked_function_arn(self) -> str:
-        return "arn:aws:lambda:serverless:" + self.name
+        return "arn:aws:lambda:serverless:" + self._name
 
     @property
     # This indeed is a string in the real context hence the ignore[override]
     def memory_limit_in_mb(self) -> str:  # type: ignore[override]
-        return "1024"
+        return os.environ.get("AWS_LAMBDA_FUNCTION_MEMORY_SIZE", "128")
 
     @property
     def aws_request_id(self) -> str:
@@ -63,15 +64,13 @@ class FakeLambdaContext(LambdaContext):
 
     @property
     def log_group_name(self) -> str:
-        return "/aws/lambda/" + self.name
+        return os.environ.get("AWS_LAMBDA_LOG_GROUP_NAME", f"/aws/lambda/{self._name}")
 
     @property
     def log_stream_name(self) -> str:
-        return (
-            strftime("%Y/%m/%d")
-            + "/[$"
-            + self.version
-            + "]58419525dade4d17a495dceeeed44708"
+        return os.environ.get(
+            "AWS_LAMBDA_LOG_STREAM_NAME",
+            f"{strftime('%Y/%m/%d')}/[{self._version}]smyth_aws_lambda_log_stream_name",
         )
 
     @property

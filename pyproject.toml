@@ -66,9 +66,10 @@ features = ["dev", "types", "docs"]
 [tool.hatch.envs.default.scripts]
 check = [
     "hatch fmt",
-    "hatch test -a",
+    "hatch test -a -p",
     "hatch test --cover",
     "hatch run types:check",
+    "hatch run docs:build",
 ]
 
 ## Types environment
@@ -79,21 +80,16 @@ check = "mypy --install-types --non-interactive {args:src/smyth}"
 ## Test environment
 
 [tool.hatch.envs.hatch-test]
-dependencies = [
-    "asynctest",
+extra-dependencies = [
     "ipdb",
     "anyio",
-    "pytest-mock",
-    "pytest-memray",
+    "pytest-freezer",
     "pytest-print",
     "pytest-cov",
-    "coverage[toml]",
     "httpx",
-    # uvloop 0.20.0 is broken on Python 3.13
-    # https://github.com/MagicStack/uvloop/issues/622
-    # waiting for 0.21.0 release
-    "uvloop==0.21.0b1",
+    "uvloop>=0.21",
 ]
+extra-args = []
 
 [[tool.hatch.envs.hatch-test.matrix]]
 python = ["3.10", "3.11", "3.12", "3.13"]

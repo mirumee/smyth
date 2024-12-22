@@ -73,6 +73,7 @@ def create_app() -> SmythStarlette:
             log_level=handler_config.log_level,
             concurrency=handler_config.concurrency,
             strategy_generator=import_attribute(handler_config.strategy_generator_path),
+            env_overrides=handler_config.get_env_overrides(config),
         )
 
     app = SmythStarlette(smyth=smyth, smyth_path_prefix=config.smyth_path_prefix)

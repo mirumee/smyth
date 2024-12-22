@@ -100,7 +100,7 @@ def test_get_context(mocker, runner_process):
     assert (
         runner_process.get_context__(
             RunnerInputMessage(type="smyth.lambda.invoke", event={}, context={})
-        ).timeout
+        )._timeout
         == 6
     )
 

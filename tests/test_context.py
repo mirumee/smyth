@@ -22,6 +22,7 @@ async def test_generate_context_data(
                     "strategy_generator": ANY,
                     "timeout": None,
                     "url_path": re.compile("/test_handler"),
+                    "env_overrides": {"TEST_ENV": "test"},
                 },
                 "name": "test_handler",
             },

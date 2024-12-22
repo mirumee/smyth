@@ -1,5 +1,6 @@
 import json
 import os
+from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -7,6 +8,7 @@ from typing import Any
 import toml
 
 from smyth.exceptions import ConfigFileNotFoundError
+from smyth.types import Environ
 
 
 @dataclass
@@ -19,6 +21,12 @@ class HandlerConfig:
     log_level: str = "DEBUG"
     concurrency: int = 1
     strategy_generator_path: str = "smyth.runner.strategy.first_warm"
+    env: Environ = field(default_factory=dict)
+
+    def get_env_overrides(self, config: "Config") -> Environ:
+        env = deepcopy(config.env)
+        env.update(self.env)
+        return env
 
 
 @dataclass
@@ -28,6 +36,7 @@ class Config:
     handlers: dict[str, HandlerConfig] = field(default_factory=dict)
     log_level: str = "INFO"
     smyth_path_prefix: str = "/smyth"
+    env: Environ = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, config_dict: dict[str, Any]) -> "Config":

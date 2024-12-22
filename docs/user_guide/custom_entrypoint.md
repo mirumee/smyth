@@ -26,13 +26,14 @@ Here's an example `smyth_conf.py` file:
 import uvicorn
 from smyth.server.app import SmythStarlette
 from smyth.smyth import Smyth
+from smyth.types import EventData, RunnerProcessProtocol, SmythHandler
 from starlette.requests import Request
 
 
 def my_handler(event, context):
     return {"statusCode": 200, "body": "Hello, World!"}
 
-async def my_event_data_generator(request: Request):
+async def my_event_data_generator(request: Request, smyth_handler: SmythHandler, process: RunnerProcessProtocol) -> EventData:
     return {
         "requestContext": {
             "http": {

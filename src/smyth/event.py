@@ -2,10 +2,12 @@ from typing import Any
 
 from starlette.requests import Request
 
-from smyth.types import EventData
+from smyth.types import EventData, RunnerProcessProtocol, SmythHandler
 
 
-async def generate_api_gw_v2_event_data(request: Request) -> EventData:
+async def generate_api_gw_v2_event_data(
+    request: Request, smyth_handler: SmythHandler, process: RunnerProcessProtocol
+) -> EventData:
     source_ip = None
     if request.client:
         source_ip = request.client.host
@@ -32,5 +34,7 @@ async def generate_api_gw_v2_event_data(request: Request) -> EventData:
     }
 
 
-async def generate_lambda_invocation_event_data(request: Request) -> Any:
+async def generate_lambda_invocation_event_data(
+    request: Request, smyth_handler: SmythHandler, process: RunnerProcessProtocol
+) -> Any:
     return await request.json()

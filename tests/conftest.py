@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from smyth.config import Config, HandlerConfig
+from smyth.config import Config
 from smyth.types import RunnerProcessProtocol, SmythHandler, SmythHandlerState
 
 
@@ -26,26 +26,40 @@ def smyth_handler(
         event_data_function=mock_event_data_function,
         context_data_function=mock_context_data_function,
         strategy_generator=mock_strategy_generator,
+        env_overrides={
+            "TEST_ENV": "test",
+        },
     )
 
 
 @pytest.fixture
-def config():
-    return Config(
-        host="0.0.0.0",
-        port=8080,
-        handlers={
-            "order_handler": HandlerConfig(
-                handler_path="tests.conftest.example_handler",
-                url_path=r"/test_handler",
-            ),
-            "product_handler": HandlerConfig(
-                handler_path="tests.conftest.example_handler",
-                url_path=r"/products/{path:path}",
-            ),
-        },
-        log_level="INFO",
-    )
+def config_toml_dict():
+    return {
+        "tool": {
+            "smyth": {
+                "host": "0.0.0.0",
+                "port": 8080,
+                "env": {"ROOT_ENV": "root", "TEST_ENV": "root"},
+                "handlers": {
+                    "order_handler": {
+                        "handler_path": "tests.conftest.example_handler",
+                        "url_path": "/test_handler",
+                        "env": {"TEST_ENV": "child"},
+                    },
+                    "product_handler": {
+                        "handler_path": "tests.conftest.example_handler",
+                        "url_path": "/products/{path:path}",
+                    },
+                },
+                "log_level": "INFO",
+            }
+        }
+    }
+
+
+@pytest.fixture
+def config(config_toml_dict):
+    return Config.from_dict(config_toml_dict["tool"]["smyth"])
 
 
 def example_handler(event, context):

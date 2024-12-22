@@ -3,12 +3,12 @@ from typing import Any
 
 from starlette.requests import Request
 
-from smyth.types import RunnerProcessProtocol, SmythHandler
+from smyth.types import ContextData, RunnerProcessProtocol, SmythHandler
 
 
 async def generate_context_data(
     request: Request | None, smyth_handler: SmythHandler, process: RunnerProcessProtocol
-) -> dict[str, Any]:
+) -> ContextData:
     """
     The data returned by this function is passed to the
     `smyth.runner.FaneContext` as kwargs.

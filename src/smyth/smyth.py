@@ -14,6 +14,7 @@ from smyth.runner.process import RunnerProcess
 from smyth.runner.strategy import first_warm
 from smyth.types import (
     ContextDataCallable,
+    Environ,
     EventData,
     EventDataCallable,
     LambdaResponse,
@@ -49,6 +50,7 @@ class Smyth:
         log_level: str = "INFO",
         concurrency: int = 1,
         strategy_generator: StrategyGenerator = first_warm,
+        env_overrides: Environ | None = None,
     ) -> None:
         self.smyth_handlers[name] = SmythHandler(
             name=name,
@@ -60,6 +62,7 @@ class Smyth:
             log_level=log_level,
             concurrency=concurrency,
             strategy_generator=strategy_generator,
+            env_overrides=env_overrides,
         )
 
     def __enter__(self: Self) -> Self:
@@ -82,6 +85,7 @@ class Smyth:
                     name=f"{handler_name}:{index}",
                     lambda_handler_path=handler_config.lambda_handler_path,
                     log_level=handler_config.log_level,
+                    environ_override=handler_config.get_environ(),
                 )
                 process.start()
                 LOGGER.info("Started process %s", process.name)
@@ -134,7 +138,7 @@ class Smyth:
         if event_data_function is None:
             event_data_function = smyth_handler.event_data_function
 
-        event_data = await event_data_function(request)
+        event_data = await event_data_function(request, smyth_handler, process)
         context_data = await smyth_handler.context_data_function(
             request, smyth_handler, process
         )

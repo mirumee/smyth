@@ -1,4 +1,4 @@
-# User Guide
+# First Steps
 
 Smyth is built to have minimal or no impact on the project you are working on. That said, it comes with features that allow you to customize Smyth to the needs of your Lambda project.
 
