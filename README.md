@@ -1,7 +1,7 @@
 # Smyth
 
 <div align="center">
-<img src="docs/assets/logo_white_small.svg" width="300" role="img">
+<img src="https://github.com/mirumee/smyth/raw/main/docs/assets/logo_white_small.svg" alt="Smyth Logo" width="300" role="img">
 
 [![docs](https://img.shields.io/badge/Docs-Smyth-f5c03b.svg?style=flat&logo=materialformkdocs)](https://mirumee.github.io/smyth/)
 ![pypi](https://img.shields.io/pypi/v/smyth?style=flat)
