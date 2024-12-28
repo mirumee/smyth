@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 
 from smyth.config import (
-    Config,
     HandlerConfig,
     get_config,
     get_config_dict,
@@ -42,28 +41,8 @@ def test_get_config_dict(mocker):
     mock_get_config_file_path.assert_called_once_with("other.toml")
 
 
-def test_get_config():
-    config_dict = {
-        "tool": {
-            "smyth": {
-                "host": "0.0.0.0",
-                "port": 8080,
-                "handlers": {
-                    "order_handler": {
-                        "handler_path": "tests.conftest.example_handler",
-                        "url_path": "/test_handler",
-                    },
-                    "product_handler": {
-                        "handler_path": "tests.conftest.example_handler",
-                        "url_path": "/products/{path:path}",
-                    },
-                },
-                "log_level": "INFO",
-            }
-        }
-    }
-
-    config = get_config(config_dict)
+def test_get_config(config_toml_dict):
+    config = get_config(config_toml_dict)
 
     assert config.host == "0.0.0.0"
     assert config.port == 8080
@@ -71,6 +50,7 @@ def test_get_config():
         "order_handler": HandlerConfig(
             handler_path="tests.conftest.example_handler",
             url_path=r"/test_handler",
+            env={"TEST_ENV": "child"},
         ),
         "product_handler": HandlerConfig(
             handler_path="tests.conftest.example_handler",
@@ -84,21 +64,18 @@ def test_get_config():
     assert get_config(None) == config
 
 
-def test_serialize_config():
-    config = Config(
-        host="0.0.0.0",
-        port=8080,
-        handlers={
-            "order_handler": HandlerConfig(
-                handler_path="tests.conftest.example_handler",
-                url_path=r"/test_handler",
-            ),
-            "product_handler": HandlerConfig(
-                handler_path="tests.conftest.example_handler",
-                url_path=r"/products/{path:path}",
-            ),
-        },
-        log_level="INFO",
+def test_serialize_config(config):
+    assert serialize_config(config) == json.dumps(asdict(config))
+
+
+def test_get_env_overrides(config):
+    handler_config = HandlerConfig(
+        handler_path="tests.conftest.example_handler",
+        url_path=r"/test_handler",
+        env={"TEST_ENV": "test"},
     )
 
-    assert serialize_config(config) == json.dumps(asdict(config))
+    assert handler_config.get_env_overrides(config) == {
+        "ROOT_ENV": "root",
+        "TEST_ENV": "test",
+    }

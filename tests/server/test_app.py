@@ -38,6 +38,7 @@ def test_create_app(mocker, mock_get_config):
                 log_level="DEBUG",
                 concurrency=1,
                 strategy_generator=first_warm,
+                env_overrides={"TEST_ENV": "child", "ROOT_ENV": "root"},
             ),
             mocker.call(
                 name="product_handler",
@@ -49,6 +50,7 @@ def test_create_app(mocker, mock_get_config):
                 log_level="DEBUG",
                 concurrency=1,
                 strategy_generator=first_warm,
+                env_overrides={"TEST_ENV": "root", "ROOT_ENV": "root"},
             ),
         ]
     )

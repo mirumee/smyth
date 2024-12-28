@@ -1,12 +1,16 @@
 # Smyth
 
+<div align="center">
+<img src="docs/assets/logo_white_small.svg" width="300" role="img">
+
 [![docs](https://img.shields.io/badge/Docs-Smyth-f5c03b.svg?style=flat&logo=materialformkdocs)](https://mirumee.github.io/smyth/)
 ![pypi](https://img.shields.io/pypi/v/smyth?style=flat)
 ![licence](https://img.shields.io/pypi/l/smyth?style=flat)
 ![pypi downloads](https://img.shields.io/pypi/dm/smyth?style=flat)
 ![pyversion](https://img.shields.io/pypi/pyversions/smyth?style=flat)
+</div>
 
-Smyth is a versatile tool designed to enhance your AWS Lambda development experience. It is a pure Python tool that allows for easy customization and state persistence, making your Lambda development more efficient and developer-friendly.
+Smyth is a tool designed to enhance your AWS Lambda development experience by mocking an AWS Lambda environment on your **local machine**. It is a pure Python tool that allows for easy customization and state persistence, making your Lambda development more efficient and developer-friendly. 
 
 ## Features
 
@@ -43,6 +47,9 @@ handler_path = "my_project.handlers.saleor.handler.saleor_http_handler"
 url_path = "/saleor/{path:path}"
 ```
 
+> [!TIP] 
+> Check the [documentation](https://mirumee.github.io/smyth/user_guide/all_settings/) for more configuration options.
+
 Run Smyth with:
 ```bash
 python -m smyth
@@ -74,11 +81,6 @@ To utilize the VS Code debugger with the Smyth tool, you can set up your `launch
 ## Caveats
 
 The combination of Uvicorn reload process and HTTP server process with what is being done with the Lambda processes is tricky. If a Lambda process is doing something and the HTTP server is killed in the wrong moment it's likely going to bork your terminal. This is not solved yet. It's best to use in a Docker container or have the ability to `kill -9 {PID of the Uvicorn reload process}` at hand.
-
-## TODO
-
-- [ ] Write tests
-- [x] Publish on PyPi
 
 ## Name
 

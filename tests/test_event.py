@@ -19,7 +19,9 @@ async def test_generate_api_gw_v2_event_data(mocker):
     mock_request.url.query = ""
     mock_request.url.scheme = "http"
 
-    assert await generate_api_gw_v2_event_data(mock_request) == {
+    assert await generate_api_gw_v2_event_data(
+        mock_request, mocker.Mock(), mocker.Mock()
+    ) == {
         "version": "2.0",
         "rawPath": "/test",
         "body": "",
@@ -46,4 +48,6 @@ async def test_generate_lambda_invokation_event_data(mocker):
     mock_request = mocker.Mock()
     mock_request.json = mocker.AsyncMock(return_value={"test": "test"})
 
-    assert await generate_lambda_invocation_event_data(mock_request) == {"test": "test"}
+    assert await generate_lambda_invocation_event_data(
+        mock_request, mocker.Mock(), mocker.Mock()
+    ) == {"test": "test"}

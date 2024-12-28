@@ -13,7 +13,10 @@ The first one builds a minimal API Gateway Proxy V2 event to simulate a Lambda b
 If you need to work with events not covered by Smyth, you can create and provide your own. Assuming a simplified API Gateway V1 event, you can create a generator like this:
 
 ```python title="my_project/src/smyth_utils/event.py" linenums="1"
-async def generate_api_gw_v1_event_data(request: Request):
+from smyth.types import EventData, RunnerProcessProtocol, SmythHandler
+
+
+async def generate_api_gw_v1_event_data(request: Request, smyth_handler: SmythHandler, process: RunnerProcessProtocol) -> EventData:
     source_ip = None
     if request.client:
         source_ip = request.client.host

@@ -18,7 +18,6 @@ theme:
     - content.code.copy
     - content.code.annotate
     - content.tabs.link
-    - navigation.indexes
     - navigation.footer
     - navigation.tracking
     - navigation.expand
@@ -31,6 +30,7 @@ nav:
       - user_guide/event_functions.md
       - user_guide/invoke.md
       - user_guide/concurrency.md
+      - user_guide/environment.md
       - user_guide/all_settings.md
       - user_guide/custom_entrypoint.md
       - user_guide/non_http.md

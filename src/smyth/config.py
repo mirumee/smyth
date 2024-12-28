@@ -1,11 +1,14 @@
 import json
 import os
+from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
 
 import toml
 
 from smyth.exceptions import ConfigFileNotFoundError
+from smyth.types import Environ
 
 
 @dataclass
@@ -18,6 +21,12 @@ class HandlerConfig:
     log_level: str = "DEBUG"
     concurrency: int = 1
     strategy_generator_path: str = "smyth.runner.strategy.first_warm"
+    env: Environ = field(default_factory=dict)
+
+    def get_env_overrides(self, config: "Config") -> Environ:
+        env = deepcopy(config.env)
+        env.update(self.env)
+        return env
 
 
 @dataclass
@@ -27,9 +36,10 @@ class Config:
     handlers: dict[str, HandlerConfig] = field(default_factory=dict)
     log_level: str = "INFO"
     smyth_path_prefix: str = "/smyth"
+    env: Environ = field(default_factory=dict)
 
     @classmethod
-    def from_dict(cls, config_dict: dict):
+    def from_dict(cls, config_dict: dict[str, Any]) -> "Config":
         handler_data = config_dict.pop("handlers")
         handlers = {
             handler_name: HandlerConfig(**handler_config)
@@ -48,7 +58,7 @@ def get_config_file_path(file_name: str = "pyproject.toml") -> Path:
     return directory.joinpath(file_name).resolve()
 
 
-def get_config_dict(config_file_name: str | None = None) -> dict:
+def get_config_dict(config_file_name: str | None = None) -> dict[str, Any]:
     """Get config dict."""
     if config_file_name:
         config_file_path = get_config_file_path(config_file_name)
@@ -58,7 +68,7 @@ def get_config_dict(config_file_name: str | None = None) -> dict:
     return toml.load(config_file_path)
 
 
-def get_config(config_dict: dict) -> Config:
+def get_config(config_dict: dict[str, Any]) -> Config:
     """Get config."""
     if environ_config := os.environ.get("__SMYTH_CONFIG"):
         config_data = json.loads(environ_config)

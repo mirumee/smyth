@@ -1,6 +1,8 @@
 import logging
 import logging.config
 from collections.abc import Iterator
+from types import TracebackType
+from typing import TypeVar
 
 from starlette.requests import Request
 from starlette.routing import compile_path
@@ -12,11 +14,17 @@ from smyth.runner.process import RunnerProcess
 from smyth.runner.strategy import first_warm
 from smyth.types import (
     ContextDataCallable,
+    Environ,
+    EventData,
     EventDataCallable,
+    LambdaResponse,
+    RunnerInputMessage,
     RunnerProcessProtocol,
     SmythHandler,
     StrategyGenerator,
 )
+
+Self = TypeVar("Self", bound="Smyth")
 
 LOGGER = logging.getLogger(__name__)
 
@@ -42,7 +50,8 @@ class Smyth:
         log_level: str = "INFO",
         concurrency: int = 1,
         strategy_generator: StrategyGenerator = first_warm,
-    ):
+        env_overrides: Environ | None = None,
+    ) -> None:
         self.smyth_handlers[name] = SmythHandler(
             name=name,
             url_path=compile_path(path)[0],
@@ -53,16 +62,22 @@ class Smyth:
             log_level=log_level,
             concurrency=concurrency,
             strategy_generator=strategy_generator,
+            env_overrides=env_overrides,
         )
 
-    def __enter__(self):
+    def __enter__(self: Self) -> Self:
         self.start_runners()
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException],
+        exc_value: BaseException,
+        traceback: TracebackType,
+    ) -> None:
         self.stop_runners()
 
-    def start_runners(self):
+    def start_runners(self) -> None:
         for handler_name, handler_config in self.smyth_handlers.items():
             self.processes[handler_name] = []
             for index in range(handler_config.concurrency):
@@ -70,6 +85,7 @@ class Smyth:
                     name=f"{handler_name}:{index}",
                     lambda_handler_path=handler_config.lambda_handler_path,
                     log_level=handler_config.log_level,
+                    environ_override=handler_config.get_environ(),
                 )
                 process.start()
                 LOGGER.info("Started process %s", process.name)
@@ -78,7 +94,7 @@ class Smyth:
                 handler_name, self.processes
             )
 
-    def stop_runners(self):
+    def stop_runners(self) -> None:
         for process_group in self.processes.values():
             for process in process_group:
                 LOGGER.info("Stopping process %s", process.name)
@@ -106,14 +122,15 @@ class Smyth:
         smyth_handler: SmythHandler,
         request: Request,
         event_data_function: EventDataCallable | None = None,
-    ):
+    ) -> LambdaResponse | None:
         """
         Smyth.dispatch is used upon a request that would normally be formed by an
         AWS trigger. It is responsible for finding the appropriate process
         for the request, invoking the process, and translating the response
         """
-        process = next(self.strategy_generators[smyth_handler.name])
-        if process is None:
+        try:
+            process = next(self.strategy_generators[smyth_handler.name])
+        except KeyError:
             raise ProcessDefinitionNotFoundError(
                 f"No process definition found for handler {smyth_handler.name}"
             )
@@ -121,36 +138,39 @@ class Smyth:
         if event_data_function is None:
             event_data_function = smyth_handler.event_data_function
 
-        event_data = await event_data_function(request)
+        event_data = await event_data_function(request, smyth_handler, process)
         context_data = await smyth_handler.context_data_function(
             request, smyth_handler, process
         )
 
         return await process.asend(
-            {
-                "type": "smyth.lambda.invoke",
-                "event": event_data,
-                "context": context_data,
-            }
+            RunnerInputMessage(
+                type="smyth.lambda.invoke",
+                event=event_data,
+                context=context_data,
+            )
         )
 
-    async def invoke(self, handler: SmythHandler, event_data: dict):
+    async def invoke(
+        self, handler: SmythHandler, event_data: EventData
+    ) -> LambdaResponse | None:
         """
         Smyth.invoke is used to invoke a handler directly, without going through
         Starlette or when a direct invocation is needed (e.g., when invoking
         a lambda with boto3) - on direct invocation the event holds only the data
         passed in the invokation. There's no Starlette request involved.
         """
-        process = next(self.strategy_generators[handler.name])
-        if process is None:
+        try:
+            process = next(self.strategy_generators[handler.name])
+        except KeyError:
             raise ProcessDefinitionNotFoundError(
                 f"No process definition found for handler {handler.name}"
             )
         context_data = await handler.context_data_function(None, handler, process)
         return await process.asend(
-            {
-                "type": "smyth.lambda.invoke",
-                "event": event_data,
-                "context": context_data,
-            }
+            RunnerInputMessage(
+                type="smyth.lambda.invoke",
+                event=event_data,
+                context=context_data,
+            )
         )
