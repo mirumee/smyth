@@ -98,7 +98,7 @@ class LogRender:  # pragma: no cover
             process_name = record.processName
 
         return Text.from_markup(
-            f"{issuer}:" f"[bold]{process_name}[/]",
+            f"{issuer}:[bold]{process_name}[/]",
             style="log.process",
         )
 

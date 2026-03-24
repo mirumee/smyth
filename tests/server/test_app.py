@@ -72,7 +72,7 @@ def test_smyth_starlette(mocker):
         Route(
             "/{path:path}",
             lambda_invoker_endpoint,
-            methods=["DELETE", "GET", "HEAD", "POST", "PUT"],
+            methods=["DELETE", "GET", "HEAD", "POST", "PUT", "OPTIONS"],
         ),
     ]
 
