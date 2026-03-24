@@ -48,7 +48,7 @@ class SmythStarlette(Starlette):
         self.add_route(
             "/{path:path}",
             lambda_invoker_endpoint,
-            methods=["GET", "POST", "PUT", "DELETE"],
+            methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         )
 
 

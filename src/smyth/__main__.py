@@ -2,7 +2,7 @@ import logging
 import logging.config
 import os
 from enum import Enum
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 import uvicorn
@@ -36,10 +36,10 @@ def run(
         ),  # noqa: UP007
     ] = "smyth.server.app:create_app",
     factory: Annotated[bool, typer.Option(help="Use factory for app creation")] = True,
-    host: Annotated[Optional[str], typer.Option()] = config.host,  # noqa: UP007
-    port: Annotated[Optional[int], typer.Option()] = config.port,  # noqa: UP007
+    host: Annotated[str | None, typer.Option()] = config.host,  # noqa: UP007
+    port: Annotated[int | None, typer.Option()] = config.port,  # noqa: UP007
     log_level: Annotated[
-        Optional[LogLevel],  # noqa: UP007
+        LogLevel | None,  # noqa: UP007
         typer.Option(
             help=(
                 "Override the log level specified in the configuration, "
